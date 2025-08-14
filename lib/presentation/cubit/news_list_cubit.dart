@@ -120,6 +120,7 @@ class NewsListCubit extends Cubit<NewsListState> {
   }
 
   void onCategorySelected(NewsCategory? cat) {
+    if (state.category == cat) return;
     emit(state.copyWith(category: cat));
     load(reset: true, page: 1);
   }
