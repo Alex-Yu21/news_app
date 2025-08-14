@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:news_app/app/domain/entities/article.dart';
+import 'package:news_app/domain/entities/article.dart';
 
 void main() {
   group('Article', () {

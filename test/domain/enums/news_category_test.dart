@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:news_app/app/domain/enums/news_category.dart';
+import 'package:news_app/domain/enums/news_category.dart';
 
 void main() {
   group('NewsCategory', () {
