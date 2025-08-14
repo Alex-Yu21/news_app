@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:news_app/app/di/locator.dart';
+import 'package:news_app/presentation/cubit/news_list_cubit.dart';
 
 import 'router.dart';
 
@@ -7,10 +10,15 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'News',
-      debugShowCheckedModeBanner: false,
-      routerConfig: appRouter,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<NewsListCubit>(create: (_) => getIt<NewsListCubit>()),
+      ],
+      child: MaterialApp.router(
+        title: 'News',
+        debugShowCheckedModeBanner: false,
+        routerConfig: appRouter,
+      ),
     );
   }
 }

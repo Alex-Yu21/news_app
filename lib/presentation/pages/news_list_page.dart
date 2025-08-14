@@ -1,35 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
-import 'package:news_app/domain/entities/article.dart';
-import 'package:news_app/domain/repositories/news_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:news_app/presentation/cubit/news_list_cubit.dart';
 import 'package:news_app/presentation/widgets/article_card.dart';
 
 class NewsListPage extends StatelessWidget {
   const NewsListPage({super.key});
 
-  Future<List<Article>> _load() {
-    return GetIt.I<NewsRepository>().getHeadlines(country: 'us');
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Top headlines')),
-      body: FutureBuilder<List<Article>>(
-        future: _load(),
-        builder: (context, snap) {
-          if (snap.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
+      body: BlocBuilder<NewsListCubit, NewsListState>(
+        builder: (context, state) {
+          switch (state.status) {
+            case NewsListStatus.loading:
+              return const Center(child: CircularProgressIndicator());
+            case NewsListStatus.error:
+              return Center(child: Text(state.error ?? 'Error'));
+            case NewsListStatus.empty:
+              return const Center(child: Text('No articles'));
+            case NewsListStatus.success:
+              return RefreshIndicator(
+                onRefresh: () =>
+                    context.read<NewsListCubit>().load(reset: true, page: 1),
+                child: ListView.builder(
+                  itemCount: state.items.length,
+                  itemBuilder: (_, i) => ArticleCard(article: state.items[i]),
+                ),
+              );
+            case NewsListStatus.idle:
+              return const SizedBox.shrink();
           }
-          if (snap.hasError) {
-            return Center(child: Text('Error: ${snap.error}'));
-          }
-          final items = snap.data ?? const <Article>[];
-          if (items.isEmpty) return const Center(child: Text('No articles'));
-          return ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (_, i) => ArticleCard(article: items[i]),
-          );
         },
       ),
     );

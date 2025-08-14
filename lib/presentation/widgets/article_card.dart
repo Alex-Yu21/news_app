@@ -31,11 +31,10 @@ class ArticleCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: SizedBox(
-            height: 96, // фиксируем высоту, чтобы не было переполнений
+            height: 96,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Картинка слева
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: SizedBox(
@@ -45,12 +44,10 @@ class ArticleCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                // Текст справа
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Заголовок
                       Text(
                         article.title,
                         maxLines: 2,
@@ -60,7 +57,6 @@ class ArticleCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      // Подзаголовок / описание
                       if ((article.description ?? '').isNotEmpty)
                         Text(
                           article.description!,
@@ -71,7 +67,6 @@ class ArticleCard extends StatelessWidget {
                           ),
                         ),
                       const Spacer(),
-                      // Дата справа снизу
                       Align(
                         alignment: Alignment.bottomRight,
                         child: Text(
@@ -119,7 +114,7 @@ class _PlaceholderBox extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.6),
+      color: theme.colorScheme.surfaceContainerHighest,
       child: Center(
         child: Icon(
           isLoading ? Icons.hourglass_empty : Icons.image_outlined,
