@@ -10,52 +10,112 @@ class NewsListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Top headlines')),
-      body: BlocBuilder<NewsListCubit, NewsListState>(
-        builder: (context, state) {
-          final cubit = context.read<NewsListCubit>();
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Top headlines')),
+        body: BlocBuilder<NewsListCubit, NewsListState>(
+          builder: (context, state) {
+            Widget content;
 
-          Widget content;
-          switch (state.status) {
-            case NewsListStatus.loading:
-              content = const Center(child: CircularProgressIndicator());
-              break;
-            case NewsListStatus.error:
-              content = Center(child: Text(state.error ?? 'Error'));
-              break;
-            case NewsListStatus.empty:
-              content = const Center(child: Text('No articles'));
-              break;
-            case NewsListStatus.success:
-              content = ListView.builder(
-                itemCount: state.items.length,
-                itemBuilder: (_, i) => ArticleCard(article: state.items[i]),
-              );
-              break;
-            case NewsListStatus.idle:
-              content = const SizedBox.shrink();
-              break;
-          }
+            switch (state.status) {
+              case NewsListStatus.loading:
+                content = const Center(child: CircularProgressIndicator());
+                break;
 
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-                child: SearchField(onChanged: cubit.onQueryChanged),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: CategoryChips(
-                  value: state.category,
-                  onSelected: cubit.onCategorySelected,
+              case NewsListStatus.error:
+                content = Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(state.error ?? 'Something went wrong'),
+                        const SizedBox(height: 12),
+                        FilledButton(
+                          onPressed: () => context.read<NewsListCubit>().load(
+                            reset: true,
+                            page: 1,
+                          ),
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+                break;
+
+              case NewsListStatus.empty:
+                content = const Center(child: Text('No articles'));
+                break;
+
+              case NewsListStatus.success:
+                final items = state.items;
+
+                content = NotificationListener<ScrollNotification>(
+                  onNotification: (sn) {
+                    if (sn.metrics.pixels >= sn.metrics.maxScrollExtent - 400) {
+                      context.read<NewsListCubit>().fetchMore();
+                    }
+                    return false;
+                  },
+                  child: RefreshIndicator(
+                    onRefresh: () => context.read<NewsListCubit>().load(
+                      reset: true,
+                      page: 1,
+                    ),
+                    child: ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: items.length + (state.hasMore ? 1 : 0),
+                      itemBuilder: (_, i) {
+                        if (i < items.length) {
+                          return ArticleCard(article: items[i]);
+                        }
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                );
+                break;
+
+              case NewsListStatus.idle:
+                content = const SizedBox.shrink();
+                break;
+            }
+
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                  child: SearchField(
+                    onChanged: context.read<NewsListCubit>().onQueryChanged,
+                  ),
                 ),
-              ),
-              const Divider(height: 1),
-              Expanded(child: content),
-            ],
-          );
-        },
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: CategoryChips(
+                    value: state.category,
+                    onSelected: context
+                        .read<NewsListCubit>()
+                        .onCategorySelected,
+                  ),
+                ),
+                const Divider(height: 1),
+                Expanded(child: content),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
