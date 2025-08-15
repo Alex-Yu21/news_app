@@ -147,9 +147,12 @@ class NewsListCubit extends Cubit<NewsListState> {
   }
 
   void onQueryChanged(String q) {
+    final val = q.trim().isEmpty ? null : q.trim();
+
+    if (state.query == val) return;
+
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
-      final val = q.trim().isEmpty ? null : q.trim();
       load(reset: true, page: 1, query: val);
     });
   }

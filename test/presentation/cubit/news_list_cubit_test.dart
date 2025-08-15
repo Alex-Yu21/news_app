@@ -143,5 +143,47 @@ void main() {
         ).called(1);
       },
     );
+    blocTest<NewsListCubit, NewsListState>(
+      'should debounce search and call repository once for burst of inputs',
+      build: () {
+        when(
+          () => repo.getHeadlines(
+            country: any(named: 'country'),
+            category: any(named: 'category'),
+            query: any(named: 'query'),
+            page: any(named: 'page'),
+          ),
+        ).thenAnswer((_) async => [a('init')]);
+
+        when(
+          () => repo.getHeadlines(
+            country: any(named: 'country'),
+            category: any(named: 'category'),
+            query: 'apple',
+            page: 1,
+          ),
+        ).thenAnswer((_) async => [a('apple1'), a('apple2')]);
+
+        return NewsListCubit(repo);
+      },
+      act: (cubit) async {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        cubit.onQueryChanged('a');
+        cubit.onQueryChanged('ap');
+        cubit.onQueryChanged('apple');
+      },
+      wait: const Duration(milliseconds: 650),
+      verify: (_) {
+        verify(() => repo.getHeadlines(country: 'us', page: 1)).called(1);
+        verify(
+          () => repo.getHeadlines(
+            country: 'us',
+            query: 'apple',
+            page: 1,
+            category: any(named: 'category'),
+          ),
+        ).called(1);
+      },
+    );
   });
 }
