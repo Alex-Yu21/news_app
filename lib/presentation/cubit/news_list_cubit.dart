@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:news_app/app/config/app_env.dart';
 import 'package:news_app/domain/entities/article.dart';
 import 'package:news_app/domain/enums/news_category.dart';
 import 'package:news_app/domain/repositories/news_repository.dart';
@@ -23,7 +24,7 @@ class NewsListState extends Equatable {
     this.items = const [],
     this.page = 1,
     this.hasMore = true,
-    this.country = 'us',
+    this.country = defaultCountry,
     this.category,
     this.query,
     this.error,
