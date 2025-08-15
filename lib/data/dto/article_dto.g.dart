@@ -13,6 +13,7 @@ ArticleDto _$ArticleDtoFromJson(Map<String, dynamic> json) => ArticleDto(
   url: json['url'] as String,
   publishedAt: json['publishedAt'] as String,
   source: SourceDto.fromJson(json['source'] as Map<String, dynamic>),
+  content: json['content'] as String?,
 );
 
 Map<String, dynamic> _$ArticleDtoToJson(ArticleDto instance) =>
@@ -23,6 +24,7 @@ Map<String, dynamic> _$ArticleDtoToJson(ArticleDto instance) =>
       'url': instance.url,
       'publishedAt': instance.publishedAt,
       'source': instance.source,
+      'content': instance.content,
     };
 
 SourceDto _$SourceDtoFromJson(Map<String, dynamic> json) =>
