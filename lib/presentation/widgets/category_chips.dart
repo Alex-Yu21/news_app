@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:news_app/app/theme/app_sizes.dart';
 import 'package:news_app/app/theme/app_text.dart';
 import 'package:news_app/domain/enums/news_category.dart';
 
@@ -8,24 +9,20 @@ class CategoryChips extends StatelessWidget {
   final NewsCategory? value;
   final ValueChanged<NewsCategory?>? onSelected;
 
-  static const _w = 114.0;
-  static const _h = 44.0;
-  static const _r = 22.0;
-
   @override
   Widget build(BuildContext context) {
     final style = Theme.of(context).extension<AppText>()!;
-
     final cats = NewsCategory.values;
 
     return SizedBox(
-      height: _h,
+      height: AppSizes.chipsHeight,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.zero,
         clipBehavior: Clip.none,
         itemCount: cats.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 7),
+        separatorBuilder: (_, __) =>
+            const SizedBox(width: AppSizes.chipsSpacing),
         itemBuilder: (context, i) {
           final c = cats[i];
           final selected = value == c;
@@ -37,13 +34,13 @@ class CategoryChips extends StatelessWidget {
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(_r),
+              borderRadius: BorderRadius.circular(AppSizes.chipsRadius),
             ),
             selected: selected,
             onSelected: (_) => onSelected?.call(selected ? null : c),
             label: SizedBox(
-              width: _w,
-              height: _h,
+              width: AppSizes.chipsWidth,
+              height: AppSizes.chipsHeight,
               child: Center(
                 child: Text(
                   text,

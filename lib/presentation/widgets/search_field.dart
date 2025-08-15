@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:news_app/app/theme/app_sizes.dart';
 import 'package:news_app/app/theme/app_text.dart';
 
 class SearchField extends StatelessWidget {
@@ -14,23 +15,21 @@ class SearchField extends StatelessWidget {
     return TextField(
       onChanged: onChanged,
       textAlignVertical: TextAlignVertical.center,
-      cursorHeight: 32,
+      cursorHeight: AppSizes.iconM,
+      cursorWidth: AppSizes.iconM,
       textInputAction: TextInputAction.search,
       style: text.body,
       decoration: InputDecoration(
         prefixIcon: SvgPicture.asset(
           'assets/icons/search_icon.svg',
-          width: 32,
-          height: 32,
+          width: AppSizes.iconM,
+          height: AppSizes.iconM,
         ),
         border: InputBorder.none,
         enabledBorder: InputBorder.none,
         focusedBorder: InputBorder.none,
       ),
-      cursorWidth: 1.5,
-
       enableSuggestions: false,
-
       inputFormatters: const <TextInputFormatter>[],
     );
   }
