@@ -10,14 +10,31 @@ ThemeData buildAppTheme() {
 
   return base.copyWith(
     scaffoldBackgroundColor: Colors.white,
+
     bottomNavigationBarTheme: base.bottomNavigationBarTheme.copyWith(
       selectedItemColor: primary,
       unselectedItemColor: inactive,
     ),
+
     chipTheme: base.chipTheme.copyWith(
       selectedColor: primary,
       backgroundColor: inactive,
     ),
+
+    progressIndicatorTheme: const ProgressIndicatorThemeData(
+      color: primary,
+      circularTrackColor: inactive,
+    ),
+
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primary,
+        foregroundColor: Colors.white,
+        textStyle: const TextStyle(fontWeight: FontWeight.w600),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    ),
+
     textSelectionTheme: const TextSelectionThemeData(cursorColor: inactive),
     extensions: <ThemeExtension<dynamic>>[AppText.satoshi()],
   );
