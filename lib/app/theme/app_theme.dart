@@ -26,6 +26,10 @@ ThemeData buildAppTheme() {
       circularTrackColor: inactive,
     ),
 
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(foregroundColor: primary),
+    ),
+
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: primary,
