@@ -9,6 +9,8 @@ import 'package:news_app/domain/repositories/news_repository.dart';
 
 enum NewsListStatus { idle, loading, success, empty, error }
 
+const _keep = Object();
+
 class NewsListState extends Equatable {
   final NewsListStatus status;
   final List<Article> items;
@@ -36,9 +38,9 @@ class NewsListState extends Equatable {
     int? page,
     bool? hasMore,
     String? country,
-    NewsCategory? category,
-    String? query,
-    String? error,
+    Object? category = _keep,
+    Object? query = _keep,
+    Object? error = _keep,
   }) {
     return NewsListState(
       status: status ?? this.status,
@@ -46,9 +48,11 @@ class NewsListState extends Equatable {
       page: page ?? this.page,
       hasMore: hasMore ?? this.hasMore,
       country: country ?? this.country,
-      category: category ?? this.category,
-      query: query ?? this.query,
-      error: error,
+      category: identical(category, _keep)
+          ? this.category
+          : category as NewsCategory?,
+      query: identical(query, _keep) ? this.query : query as String?,
+      error: identical(error, _keep) ? this.error : error as String?,
     );
   }
 
@@ -66,7 +70,6 @@ class NewsListState extends Equatable {
 }
 
 class NewsListCubit extends Cubit<NewsListState> {
-  static const _pageSize = 20;
   final NewsRepository _repo;
   Timer? _debounce;
   bool _isFetching = false;
@@ -77,42 +80,60 @@ class NewsListCubit extends Cubit<NewsListState> {
 
   Future<void> _loadInitial() => load(reset: true, page: 1);
 
-  Future<void> load({bool reset = false, int? page}) async {
+  Future<void> load({
+    bool reset = false,
+    int? page,
+    Object? category = _keep,
+    Object? query = _keep,
+    String? country,
+  }) async {
     if (_isFetching) return;
     _isFetching = true;
 
-    if (reset) emit(state.copyWith(status: NewsListStatus.loading, page: 1));
-
+    final nextCategory = identical(category, _keep)
+        ? state.category
+        : category as NewsCategory?;
+    final nextQuery = identical(query, _keep) ? state.query : query as String?;
+    final nextCountry = country ?? state.country;
     final nextPage = page ?? state.page;
+
+    if (reset) {
+      emit(
+        state.copyWith(
+          status: NewsListStatus.loading,
+          page: 1,
+          items: const [],
+          hasMore: true,
+          country: nextCountry,
+          category: nextCategory,
+          query: nextQuery,
+          error: null,
+        ),
+      );
+    }
+
     try {
       final data = await _repo.getHeadlines(
-        country: state.country,
-        category: state.category,
-        query: state.query,
+        country: nextCountry,
+        category: nextCategory,
+        query: nextQuery,
         page: nextPage,
       );
 
       final items = reset ? data : [...state.items, ...data];
-      final hasMore = data.length == _pageSize;
-
-      if (items.isEmpty) {
-        emit(
-          state.copyWith(
-            status: NewsListStatus.empty,
-            items: items,
-            page: nextPage,
-          ),
-        );
-      } else {
-        emit(
-          state.copyWith(
-            status: NewsListStatus.success,
-            items: items,
-            page: nextPage,
-            hasMore: hasMore,
-          ),
-        );
-      }
+      final hasMore = data.isNotEmpty;
+      emit(
+        state.copyWith(
+          status: items.isEmpty ? NewsListStatus.empty : NewsListStatus.success,
+          items: items,
+          page: nextPage,
+          hasMore: hasMore,
+          country: nextCountry,
+          category: nextCategory,
+          query: nextQuery,
+          error: null,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(status: NewsListStatus.error, error: '$e'));
     } finally {
@@ -121,16 +142,15 @@ class NewsListCubit extends Cubit<NewsListState> {
   }
 
   void onCategorySelected(NewsCategory? cat) {
-    if (state.category == cat) return;
-    emit(state.copyWith(category: cat));
-    load(reset: true, page: 1);
+    final next = (state.category == cat) ? null : cat;
+    load(reset: true, page: 1, category: next);
   }
 
   void onQueryChanged(String q) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
-      emit(state.copyWith(query: q));
-      load(reset: true, page: 1);
+      final val = q.trim().isEmpty ? null : q.trim();
+      load(reset: true, page: 1, query: val);
     });
   }
 
