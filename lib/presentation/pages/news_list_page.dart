@@ -57,14 +57,36 @@ class NewsListPage extends StatelessWidget {
   }
 }
 
-class _NewsListBody extends StatelessWidget {
+class _NewsListBody extends StatefulWidget {
   const _NewsListBody({required this.state, required this.cubit});
 
   final NewsListState state;
   final NewsListCubit cubit;
 
   @override
+  State<_NewsListBody> createState() => _NewsListBodyState();
+}
+
+class _NewsListBodyState extends State<_NewsListBody> {
+  NewsListStatus? _lastStatus;
+
+  @override
+  void initState() {
+    super.initState();
+    _lastStatus = widget.state.status;
+  }
+
+  @override
+  void didUpdateWidget(covariant _NewsListBody oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _lastStatus = oldWidget.state.status;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final state = widget.state;
+    final cubit = widget.cubit;
+
     switch (state.status) {
       case NewsListStatus.loading:
         return const Center(child: CircularProgressIndicator());
@@ -76,11 +98,32 @@ class _NewsListBody extends StatelessWidget {
       case NewsListStatus.empty:
         return const Center(child: Text('No articles'));
       case NewsListStatus.success:
-        return _ArticlesList(
+        final shouldAnimate =
+            _lastStatus != NewsListStatus.success && state.items.isNotEmpty;
+
+        final list = _ArticlesList(
           items: state.items,
           hasMore: state.hasMore,
           onFetchMore: cubit.fetchMore,
           onRefresh: () => cubit.load(reset: true, page: 1),
+        );
+
+        if (!shouldAnimate) return list;
+
+        final bottomInset = MediaQuery.of(context).padding.bottom;
+        const navBarHeight = 84.0;
+        const navBarOuterBottom = 12.0;
+        const extra = 12.0;
+        final fromPx = navBarHeight + navBarOuterBottom + bottomInset + extra;
+
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: fromPx, end: 0),
+          duration: const Duration(milliseconds: 420),
+          curve: Curves.easeOutCubic,
+          child: list,
+          builder: (context, dy, child) {
+            return Transform.translate(offset: Offset(0, dy), child: child);
+          },
         );
       case NewsListStatus.idle:
         return const SizedBox.shrink();
