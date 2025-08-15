@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:news_app/app/theme/app_sizes.dart';
+import 'package:news_app/domain/entities/article.dart';
 import 'package:news_app/presentation/cubit/news_list_cubit.dart';
 import 'package:news_app/presentation/widgets/article_card.dart';
 import 'package:news_app/presentation/widgets/category_chips.dart';
@@ -8,113 +10,212 @@ import 'package:news_app/presentation/widgets/search_field.dart';
 class NewsListPage extends StatelessWidget {
   const NewsListPage({super.key});
 
+  static const _searchPadding = EdgeInsets.only(top: 28, left: 22, right: 22);
+  static const _chipsPadding = EdgeInsets.only(
+    top: 34,
+    left: 19,
+    right: 19,
+    bottom: 22,
+  );
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        appBar: AppBar(title: const Text('Top headlines')),
-        body: BlocBuilder<NewsListCubit, NewsListState>(
-          builder: (context, state) {
-            Widget content;
+        body: SafeArea(
+          child: BlocBuilder<NewsListCubit, NewsListState>(
+            builder: (context, state) {
+              final cubit = context.read<NewsListCubit>();
 
-            switch (state.status) {
-              case NewsListStatus.loading:
-                content = const Center(child: CircularProgressIndicator());
-                break;
-
-              case NewsListStatus.error:
-                content = Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(state.error ?? 'Something went wrong'),
-                        const SizedBox(height: 12),
-                        FilledButton(
-                          onPressed: () => context.read<NewsListCubit>().load(
-                            reset: true,
-                            page: 1,
-                          ),
-                          child: const Text('Retry'),
-                        ),
-                      ],
+              return Column(
+                children: [
+                  Padding(
+                    padding: _searchPadding,
+                    child: SearchField(onChanged: cubit.onQueryChanged),
+                  ),
+                  Padding(
+                    padding: _chipsPadding,
+                    child: CategoryChips(
+                      value: state.category,
+                      onSelected: cubit.onCategorySelected,
                     ),
                   ),
-                );
-                break;
-
-              case NewsListStatus.empty:
-                content = const Center(child: Text('No articles'));
-                break;
-
-              case NewsListStatus.success:
-                final items = state.items;
-
-                content = NotificationListener<ScrollNotification>(
-                  onNotification: (sn) {
-                    if (sn.metrics.pixels >= sn.metrics.maxScrollExtent - 400) {
-                      context.read<NewsListCubit>().fetchMore();
-                    }
-                    return false;
-                  },
-                  child: RefreshIndicator(
-                    onRefresh: () => context.read<NewsListCubit>().load(
-                      reset: true,
-                      page: 1,
-                    ),
-                    child: ListView.builder(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      itemCount: items.length + (state.hasMore ? 1 : 0),
-                      itemBuilder: (_, i) {
-                        if (i < items.length) {
-                          return ArticleCard(article: items[i]);
-                        }
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          child: Center(
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                  Expanded(
+                    child: _NewsListBody(state: state, cubit: cubit),
                   ),
-                );
-                break;
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-              case NewsListStatus.idle:
-                content = const SizedBox.shrink();
-                break;
-            }
+class _NewsListBody extends StatelessWidget {
+  const _NewsListBody({required this.state, required this.cubit});
 
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-                  child: SearchField(
-                    onChanged: context.read<NewsListCubit>().onQueryChanged,
-                  ),
+  final NewsListState state;
+  final NewsListCubit cubit;
+
+  @override
+  Widget build(BuildContext context) {
+    switch (state.status) {
+      case NewsListStatus.loading:
+        return const Center(child: CircularProgressIndicator());
+      case NewsListStatus.error:
+        return _ErrorView(
+          message: state.error ?? 'Something went wrong',
+          onRetry: () => cubit.load(reset: true, page: 1),
+        );
+      case NewsListStatus.empty:
+        return const Center(child: Text('No articles'));
+      case NewsListStatus.success:
+        return _ArticlesList(
+          items: state.items,
+          hasMore: state.hasMore,
+          onFetchMore: cubit.fetchMore,
+          onRefresh: () => cubit.load(reset: true, page: 1),
+        );
+      case NewsListStatus.idle:
+        return const SizedBox.shrink();
+    }
+  }
+}
+
+class _ArticlesList extends StatefulWidget {
+  const _ArticlesList({
+    required this.items,
+    required this.hasMore,
+    required this.onFetchMore,
+    required this.onRefresh,
+  });
+
+  final List<Article> items;
+  final bool hasMore;
+  final VoidCallback onFetchMore;
+  final Future<void> Function() onRefresh;
+
+  @override
+  State<_ArticlesList> createState() => _ArticlesListState();
+}
+
+class _ArticlesListState extends State<_ArticlesList> {
+  late final ScrollController _controller;
+  int _autoTries = 0;
+  static const _kThresholdPx = 400.0;
+  static const _kMaxAutoTries = 3;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = ScrollController()..addListener(_onScroll);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _tryAutoFetchIfShort());
+  }
+
+  @override
+  void didUpdateWidget(covariant _ArticlesList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.items.length != oldWidget.items.length) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _tryAutoFetchIfShort(),
+      );
+    }
+  }
+
+  void _onScroll() {
+    if (!_controller.hasClients || !widget.hasMore) return;
+    final extentAfter = _controller.position.extentAfter;
+    if (extentAfter < _kThresholdPx) {
+      widget.onFetchMore();
+    }
+  }
+
+  void _tryAutoFetchIfShort() {
+    if (!mounted || !widget.hasMore || !_controller.hasClients) return;
+
+    final isShort = _controller.position.maxScrollExtent <= 0;
+    if (isShort && _autoTries < _kMaxAutoTries) {
+      _autoTries++;
+      widget.onFetchMore();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller
+      ..removeListener(_onScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      onRefresh: widget.onRefresh,
+      child: ListView.builder(
+        controller: _controller,
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: widget.items.length + (widget.hasMore ? 1 : 0),
+        itemBuilder: (_, i) {
+          if (i < widget.items.length) {
+            final Article article = widget.items[i];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16, left: 19, right: 19),
+              child: DecoratedBox(
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x26000000),
+                      blurRadius: 6.1,
+                      offset: Offset(0, 3),
+                      spreadRadius: 0,
+                    ),
+                  ],
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: CategoryChips(
-                    value: state.category,
-                    onSelected: context
-                        .read<NewsListCubit>()
-                        .onCategorySelected,
-                  ),
-                ),
-                const Divider(height: 1),
-                Expanded(child: content),
-              ],
+                child: ArticleCard(article: article),
+              ),
             );
-          },
+          }
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: SizedBox(
+                width: AppSizes.iconM,
+                height: AppSizes.iconM,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _ErrorView extends StatelessWidget {
+  const _ErrorView({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(message, textAlign: TextAlign.center),
+            const SizedBox(height: 12),
+            FilledButton(onPressed: onRetry, child: const Text('Retry')),
+          ],
         ),
       ),
     );

@@ -1,78 +1,104 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:news_app/app/theme/app_sizes.dart';
+import 'package:news_app/app/theme/app_text.dart';
 import 'package:news_app/domain/entities/article.dart';
 
 class ArticleCard extends StatelessWidget {
-  const ArticleCard({super.key, required this.article, this.onTap});
+  const ArticleCard({
+    super.key,
+    required this.article,
+    this.onTap,
+    this.heroTag,
+  });
 
   final Article article;
   final VoidCallback? onTap;
+  final Object? heroTag;
 
-  static const _radius = 16.0;
-  static const _imageSize = 84.0;
-
-  String _formatDate(DateTime? dt) {
-    if (dt == null) return '';
-    return DateFormat('MM.dd.yyyy').format(dt);
-  }
+  String _formatDate(DateTime? dt) =>
+      dt == null ? '' : DateFormat('MM.dd.yyyy').format(dt);
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final text = Theme.of(context).extension<AppText>() ?? AppText.satoshi();
+    final subtitle = (article.description?.trim().isNotEmpty ?? false)
+        ? article.description!.trim()
+        : (article.sourceName);
+
+    Widget image = SizedBox(
+      width: AppSizes.imageWidth,
+      height: AppSizes.imageHeigth,
+      child: _ArticleImage(
+        url: article.urlToImage,
+        sourceName: article.sourceName,
+      ),
+    );
+
+    image = ClipRRect(
+      borderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(AppSizes.radS),
+        bottomLeft: Radius.circular(AppSizes.radS),
+      ),
+      child: image,
+    );
+
+    if (heroTag != null) {
+      image = Hero(tag: heroTag!, child: image);
+    }
 
     return Material(
-      color: theme.colorScheme.surface,
-      elevation: 0.5,
-      borderRadius: BorderRadius.circular(_radius),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(_radius),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
+      type: MaterialType.transparency,
+      child: Ink(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppSizes.radS),
+          border: Border.all(color: Color(0xFFCECECE), width: 0.5),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppSizes.radS),
+          onTap: onTap,
           child: SizedBox(
-            height: 96,
+            height: AppSizes.imageHeigth,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: SizedBox(
-                    width: _imageSize,
-                    height: _imageSize,
-                    child: _ArticleImage(url: article.urlToImage),
-                  ),
-                ),
+                image,
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        article.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
+                      Padding(
+                        padding: const EdgeInsets.only(top: 5),
+                        child: Text(
+                          article.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: text.title,
                         ),
                       ),
                       const SizedBox(height: 4),
-                      if ((article.description ?? '').isNotEmpty)
+                      if (subtitle.trim().isNotEmpty)
                         Text(
-                          article.description!,
-                          maxLines: 2,
+                          subtitle.trim(),
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                          style: text.body,
+                          strutStyle: const StrutStyle(
+                            forceStrutHeight: true,
+                            height: 1.3,
                           ),
                         ),
                       const Spacer(),
                       Align(
                         alignment: Alignment.bottomRight,
-                        child: Text(
-                          _formatDate(article.publishedAt),
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: theme.colorScheme.outline,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 6, right: 11),
+                          child: Text(
+                            _formatDate(article.publishedAt),
+                            style: text.caption,
                           ),
                         ),
                       ),
@@ -89,38 +115,64 @@ class ArticleCard extends StatelessWidget {
 }
 
 class _ArticleImage extends StatelessWidget {
-  const _ArticleImage({required this.url});
+  const _ArticleImage({required this.url, required this.sourceName});
+
   final String? url;
+  final String sourceName;
 
   @override
   Widget build(BuildContext context) {
     if (url == null || url!.isEmpty) {
-      return _PlaceholderBox();
+      return _SourceLabelPlaceholder(sourceName: sourceName);
     }
     return CachedNetworkImage(
       imageUrl: url!,
       fit: BoxFit.cover,
-      placeholder: (_, __) => const _PlaceholderBox(isLoading: true),
-      errorWidget: (_, __, ___) => const _PlaceholderBox(),
+      placeholder: (_, __) => _SourceLabelPlaceholder(sourceName: sourceName),
+      errorWidget: (_, __, ___) =>
+          _SourceLabelPlaceholder(sourceName: sourceName),
+      fadeInDuration: const Duration(milliseconds: 180),
+      fadeOutDuration: const Duration(milliseconds: 120),
     );
   }
 }
 
-class _PlaceholderBox extends StatelessWidget {
-  const _PlaceholderBox({this.isLoading = false});
-  final bool isLoading;
+class _SourceLabelPlaceholder extends StatelessWidget {
+  const _SourceLabelPlaceholder({this.sourceName = ''});
+
+  final String sourceName;
+
+  String _label(String s) {
+    final name = s.trim();
+    if (name.isEmpty) return '•';
+    if (name.length <= 3) return '•';
+    final words = name
+        .split(RegExp(r'\s+'))
+        .where((e) => e.isNotEmpty)
+        .toList();
+    if (words.length >= 3) {
+      final acronym = words.map((w) => w[0]).join().toUpperCase();
+      return acronym;
+    }
+    return name;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final t = Theme.of(context).extension<AppText>() ?? AppText.satoshi();
+    final bg = const Color(0xFFC1C1C1);
+    final fg = Colors.white70;
+
     return Container(
-      color: theme.colorScheme.surfaceContainerHighest,
-      child: Center(
-        child: Icon(
-          isLoading ? Icons.hourglass_empty : Icons.image_outlined,
-          size: 20,
-          color: theme.colorScheme.outline,
-        ),
+      alignment: Alignment.center,
+      color: bg,
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: Text(
+        _label(sourceName),
+        textAlign: TextAlign.center,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: t.title.copyWith(color: fg),
       ),
     );
   }
