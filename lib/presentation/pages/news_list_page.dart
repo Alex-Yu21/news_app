@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:news_app/app/router.dart';
 import 'package:news_app/app/theme/app_sizes.dart';
 import 'package:news_app/domain/entities/article.dart';
 import 'package:news_app/presentation/cubit/news_list_cubit.dart';
@@ -38,8 +40,8 @@ class NewsListPage extends StatelessWidget {
                   Padding(
                     padding: _chipsPadding,
                     child: CategoryChips(
-                      value: state.category,
-                      onSelected: cubit.onCategorySelected,
+                      values: state.categories,
+                      onToggle: cubit.onToggleCategory,
                     ),
                   ),
                   Expanded(
@@ -155,11 +157,18 @@ class _ArticlesListState extends State<_ArticlesList> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+    const navBarHeight = 84.0;
+    const navBarOuterBottom = 12.0;
+
     return RefreshIndicator(
       onRefresh: widget.onRefresh,
       child: ListView.builder(
         controller: _controller,
         physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.only(
+          bottom: navBarHeight + navBarOuterBottom + bottomInset + 12,
+        ),
         itemCount: widget.items.length + (widget.hasMore ? 1 : 0),
         itemBuilder: (_, i) {
           if (i < widget.items.length) {
@@ -178,7 +187,11 @@ class _ArticlesListState extends State<_ArticlesList> {
                     ),
                   ],
                 ),
-                child: ArticleCard(article: article),
+                child: ArticleCard(
+                  article: article,
+                  heroTag: articleHeroTag(article),
+                  onTap: () => context.pushNamed('details', extra: article),
+                ),
               ),
             );
           }

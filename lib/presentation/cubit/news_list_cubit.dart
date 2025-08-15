@@ -17,7 +17,8 @@ class NewsListState extends Equatable {
   final int page;
   final bool hasMore;
   final String country;
-  final NewsCategory? category;
+  final Set<NewsCategory> categories;
+  final Map<NewsCategory, int> categoryPages;
   final String? query;
   final String? error;
 
@@ -27,7 +28,8 @@ class NewsListState extends Equatable {
     this.page = 1,
     this.hasMore = true,
     this.country = defaultCountry,
-    this.category,
+    this.categories = const {},
+    this.categoryPages = const {},
     this.query,
     this.error,
   });
@@ -38,7 +40,8 @@ class NewsListState extends Equatable {
     int? page,
     bool? hasMore,
     String? country,
-    Object? category = _keep,
+    Object? categories = _keep,
+    Map<NewsCategory, int>? categoryPages,
     Object? query = _keep,
     Object? error = _keep,
   }) {
@@ -48,9 +51,10 @@ class NewsListState extends Equatable {
       page: page ?? this.page,
       hasMore: hasMore ?? this.hasMore,
       country: country ?? this.country,
-      category: identical(category, _keep)
-          ? this.category
-          : category as NewsCategory?,
+      categories: identical(categories, _keep)
+          ? this.categories
+          : (categories as Set<NewsCategory>),
+      categoryPages: categoryPages ?? this.categoryPages,
       query: identical(query, _keep) ? this.query : query as String?,
       error: identical(error, _keep) ? this.error : error as String?,
     );
@@ -63,7 +67,8 @@ class NewsListState extends Equatable {
     page,
     hasMore,
     country,
-    category,
+    categories,
+    categoryPages,
     query,
     error,
   ];
@@ -83,21 +88,24 @@ class NewsListCubit extends Cubit<NewsListState> {
   Future<void> load({
     bool reset = false,
     int? page,
-    Object? category = _keep,
+    Object? categories = _keep,
     Object? query = _keep,
     String? country,
   }) async {
     if (_isFetching) return;
     _isFetching = true;
 
-    final nextCategory = identical(category, _keep)
-        ? state.category
-        : category as NewsCategory?;
+    final nextCategories = identical(categories, _keep)
+        ? state.categories
+        : categories as Set<NewsCategory>;
     final nextQuery = identical(query, _keep) ? state.query : query as String?;
     final nextCountry = country ?? state.country;
+    final isMulti = nextCategories.length > 1;
     final nextPage = page ?? state.page;
 
+    Map<NewsCategory, int> nextCategoryPages = state.categoryPages;
     if (reset) {
+      nextCategoryPages = isMulti ? {for (final c in nextCategories) c: 1} : {};
       emit(
         state.copyWith(
           status: NewsListStatus.loading,
@@ -105,7 +113,8 @@ class NewsListCubit extends Cubit<NewsListState> {
           items: const [],
           hasMore: true,
           country: nextCountry,
-          category: nextCategory,
+          categories: nextCategories,
+          categoryPages: nextCategoryPages,
           query: nextQuery,
           error: null,
         ),
@@ -113,27 +122,104 @@ class NewsListCubit extends Cubit<NewsListState> {
     }
 
     try {
-      final data = await _repo.getHeadlines(
-        country: nextCountry,
-        category: nextCategory,
-        query: nextQuery,
-        page: nextPage,
-      );
-
-      final items = reset ? data : [...state.items, ...data];
-      final hasMore = data.isNotEmpty;
-      emit(
-        state.copyWith(
-          status: items.isEmpty ? NewsListStatus.empty : NewsListStatus.success,
-          items: items,
-          page: nextPage,
-          hasMore: hasMore,
+      if (nextCategories.isEmpty) {
+        final data = await _repo.getHeadlines(
           country: nextCountry,
-          category: nextCategory,
+          category: null,
           query: nextQuery,
-          error: null,
-        ),
-      );
+          page: nextPage,
+        );
+        final items = _mergeAppend(reset ? const [] : state.items, data);
+        emit(
+          state.copyWith(
+            status: items.isEmpty
+                ? NewsListStatus.empty
+                : NewsListStatus.success,
+            items: items,
+            page: nextPage,
+            hasMore: data.isNotEmpty,
+            country: nextCountry,
+            categories: nextCategories,
+            categoryPages: const {},
+            query: nextQuery,
+            error: null,
+          ),
+        );
+      } else if (nextCategories.length == 1) {
+        final cat = nextCategories.first;
+        final data = await _repo.getHeadlines(
+          country: nextCountry,
+          category: cat,
+          query: nextQuery,
+          page: nextPage,
+        );
+        final items = _mergeAppend(reset ? const [] : state.items, data);
+        emit(
+          state.copyWith(
+            status: items.isEmpty
+                ? NewsListStatus.empty
+                : NewsListStatus.success,
+            items: items,
+            page: nextPage,
+            hasMore: data.isNotEmpty,
+            country: nextCountry,
+            categories: nextCategories,
+            categoryPages: const {},
+            query: nextQuery,
+            error: null,
+          ),
+        );
+      } else {
+        final pages = Map<NewsCategory, int>.from(
+          nextCategoryPages.isEmpty
+              ? {for (final c in nextCategories) c: 1}
+              : nextCategoryPages,
+        );
+
+        final futures = <Future<List<Article>>>[];
+        final order = <NewsCategory>[];
+        for (final c in nextCategories) {
+          final p = pages[c] ?? 1;
+          order.add(c);
+          futures.add(
+            _repo.getHeadlines(
+              country: nextCountry,
+              category: c,
+              query: nextQuery,
+              page: p,
+            ),
+          );
+        }
+
+        final results = await Future.wait(futures);
+        final mergedBatch = <Article>[];
+        final updatedPages = <NewsCategory, int>{};
+
+        for (var i = 0; i < order.length; i++) {
+          final cat = order[i];
+          final data = results[i];
+          mergedBatch.addAll(data);
+          if (data.isNotEmpty) {
+            updatedPages[cat] = (pages[cat] ?? 1) + 1;
+          }
+        }
+
+        final items = _mergeAppend(reset ? const [] : state.items, mergedBatch);
+        emit(
+          state.copyWith(
+            status: items.isEmpty
+                ? NewsListStatus.empty
+                : NewsListStatus.success,
+            items: items,
+            hasMore: updatedPages.isNotEmpty,
+            country: nextCountry,
+            categories: nextCategories,
+            categoryPages: updatedPages,
+            query: nextQuery,
+            error: null,
+          ),
+        );
+      }
     } catch (e) {
       emit(state.copyWith(status: NewsListStatus.error, error: '$e'));
     } finally {
@@ -141,16 +227,19 @@ class NewsListCubit extends Cubit<NewsListState> {
     }
   }
 
-  void onCategorySelected(NewsCategory? cat) {
-    final next = (state.category == cat) ? null : cat;
-    load(reset: true, page: 1, category: next);
+  void onToggleCategory(NewsCategory cat, bool selected) {
+    final next = Set<NewsCategory>.from(state.categories);
+    if (selected) {
+      next.add(cat);
+    } else {
+      next.remove(cat);
+    }
+    load(reset: true, page: 1, categories: next);
   }
 
   void onQueryChanged(String q) {
     final val = q.trim().isEmpty ? null : q.trim();
-
     if (state.query == val) return;
-
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
       load(reset: true, page: 1, query: val);
@@ -159,12 +248,29 @@ class NewsListCubit extends Cubit<NewsListState> {
 
   Future<void> fetchMore() async {
     if (!state.hasMore || _isFetching) return;
-    await load(reset: false, page: state.page + 1);
+    if (state.categories.length <= 1) {
+      await load(reset: false, page: state.page + 1);
+    } else {
+      await load(reset: false);
+    }
   }
 
   @override
   Future<void> close() {
     _debounce?.cancel();
     return super.close();
+  }
+
+  List<Article> _mergeAppend(List<Article> base, List<Article> incoming) {
+    final map = <String, Article>{};
+    for (final a in base) {
+      map[a.url] = a;
+    }
+    for (final a in incoming) {
+      map[a.url] = a;
+    }
+    final list = map.values.toList();
+    list.sort((b, a) => a.publishedAt.compareTo(b.publishedAt));
+    return list;
   }
 }

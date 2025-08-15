@@ -15,10 +15,10 @@ void main() {
     repo = MockNewsRepository();
   });
 
-  Article a(String id) => Article(
+  Article a(String id, {DateTime? at}) => Article(
     title: 'T$id',
     description: 'D$id',
-    publishedAt: DateTime.utc(2025, 1, 1),
+    publishedAt: at ?? DateTime.utc(2025, 1, 1),
     url: id,
     urlToImage: null,
     sourceName: 'S',
@@ -47,10 +47,18 @@ void main() {
         ),
         isA<NewsListState>()
             .having((s) => s.status, 'status', NewsListStatus.success)
-            .having((s) => s.items.length, 'items', 2),
+            .having((s) => s.items.length, 'items', 2)
+            .having((s) => s.categories.isEmpty, 'no categories', true),
       ],
       verify: (_) {
-        verify(() => repo.getHeadlines(country: 'us', page: 1)).called(1);
+        verify(
+          () => repo.getHeadlines(
+            country: 'us',
+            page: 1,
+            category: null,
+            query: any(named: 'query'),
+          ),
+        ).called(1);
       },
     );
 
@@ -82,7 +90,7 @@ void main() {
       ],
     );
     blocTest<NewsListCubit, NewsListState>(
-      'should reload headlines when category changes',
+      'should reload headlines when single category toggled on',
       build: () {
         when(
           () => repo.getHeadlines(
@@ -91,7 +99,7 @@ void main() {
             query: any(named: 'query'),
             page: any(named: 'page'),
           ),
-        ).thenAnswer((_) async => [a('1')]);
+        ).thenAnswer((_) async => [a('init')]);
 
         when(
           () => repo.getHeadlines(
@@ -106,9 +114,9 @@ void main() {
       },
       act: (cubit) async {
         await Future<void>.delayed(const Duration(milliseconds: 10));
-        cubit.onCategorySelected(NewsCategory.business);
+        cubit.onToggleCategory(NewsCategory.business, true);
       },
-      wait: const Duration(milliseconds: 30),
+      wait: const Duration(milliseconds: 40),
       expect: () => [
         isA<NewsListState>().having(
           (s) => s.status,
@@ -118,31 +126,165 @@ void main() {
         isA<NewsListState>()
             .having((s) => s.status, 'status', NewsListStatus.success)
             .having((s) => s.items.length, 'items', 1)
-            .having((s) => s.category, 'category', null),
-
+            .having((s) => s.categories.isEmpty, 'no categories', true),
         isA<NewsListState>()
             .having((s) => s.status, 'status', NewsListStatus.loading)
-            .having((s) => s.page, 'page', 1)
-            .having((s) => s.category, 'category', NewsCategory.business),
+            .having(
+              (s) => s.categories.contains(NewsCategory.business),
+              'has business',
+              true,
+            ),
         isA<NewsListState>()
             .having((s) => s.status, 'status', NewsListStatus.success)
             .having((s) => s.items.length, 'items', 2)
-            .having((s) => s.items.first.url, 'first url', 'b1')
-            .having((s) => s.category, 'category', NewsCategory.business),
+            .having((s) => s.categories.length, 'categories count', 1),
       ],
       verify: (_) {
         verify(
-          () => repo.getHeadlines(country: 'us', category: null, page: 1),
+          () => repo.getHeadlines(
+            country: 'us',
+            category: null,
+            page: 1,
+            query: any(named: 'query'),
+          ),
         ).called(1);
+
         verify(
           () => repo.getHeadlines(
             country: 'us',
             category: NewsCategory.business,
             page: 1,
+            query: any(named: 'query'),
           ),
         ).called(1);
       },
     );
+
+    blocTest<NewsListCubit, NewsListState>(
+      'should merge results from two categories and deduplicate by url',
+      build: () {
+        when(
+          () => repo.getHeadlines(
+            country: any(named: 'country'),
+            category: null,
+            query: any(named: 'query'),
+            page: any(named: 'page'),
+          ),
+        ).thenAnswer((_) async => [a('init')]);
+
+        when(
+          () => repo.getHeadlines(
+            country: any(named: 'country'),
+            category: NewsCategory.business,
+            query: any(named: 'query'),
+            page: 1,
+          ),
+        ).thenAnswer((_) async => [a('b1'), a('dupe')]);
+
+        when(
+          () => repo.getHeadlines(
+            country: any(named: 'country'),
+            category: NewsCategory.business,
+            query: any(named: 'query'),
+            page: any(named: 'page'),
+          ),
+        ).thenAnswer((_) async => [a('b1'), a('dupe')]);
+        when(
+          () => repo.getHeadlines(
+            country: any(named: 'country'),
+            category: NewsCategory.sports,
+            query: any(named: 'query'),
+            page: any(named: 'page'),
+          ),
+        ).thenAnswer((_) async => [a('s1'), a('dupe'), a('s2')]);
+
+        return NewsListCubit(repo);
+      },
+      act: (cubit) async {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        cubit.onToggleCategory(NewsCategory.business, true);
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        cubit.onToggleCategory(NewsCategory.sports, true);
+      },
+      wait: const Duration(milliseconds: 80),
+      expect: () => [
+        isA<NewsListState>().having(
+          (s) => s.status,
+          'status',
+          NewsListStatus.loading,
+        ),
+        isA<NewsListState>()
+            .having((s) => s.status, 'status', NewsListStatus.success)
+            .having((s) => s.items.length, 'items', 1)
+            .having((s) => s.categories.isEmpty, 'no categories', true),
+
+        isA<NewsListState>()
+            .having((s) => s.status, 'status', NewsListStatus.loading)
+            .having(
+              (s) => s.categories,
+              'cats',
+              containsAll(<NewsCategory>{NewsCategory.business}),
+            ),
+        isA<NewsListState>()
+            .having((s) => s.status, 'status', NewsListStatus.success)
+            .having((s) => s.categories.length, 'categories count', 1)
+            .having((s) => s.items.length, 'items', 2),
+
+        isA<NewsListState>()
+            .having((s) => s.status, 'status', NewsListStatus.loading)
+            .having(
+              (s) => s.categories,
+              'cats',
+              containsAll(<NewsCategory>{
+                NewsCategory.business,
+                NewsCategory.sports,
+              }),
+            ),
+        isA<NewsListState>()
+            .having((s) => s.status, 'status', NewsListStatus.success)
+            .having((s) => s.categories.length, 'categories count', 2)
+            .having((s) => s.items.length, 'merged unique count', 4)
+            .having(
+              (s) => s.items.map((e) => e.url).toSet().containsAll({
+                'b1',
+                's1',
+                's2',
+                'dupe',
+              }),
+              'contains all unique urls',
+              true,
+            ),
+      ],
+      verify: (_) {
+        verify(
+          () => repo.getHeadlines(
+            country: 'us',
+            category: null,
+            page: 1,
+            query: any(named: 'query'),
+          ),
+        ).called(1);
+
+        verify(
+          () => repo.getHeadlines(
+            country: 'us',
+            category: NewsCategory.business,
+            page: 1,
+            query: any(named: 'query'),
+          ),
+        ).called(2);
+
+        verify(
+          () => repo.getHeadlines(
+            country: 'us',
+            category: NewsCategory.sports,
+            page: 1,
+            query: any(named: 'query'),
+          ),
+        ).called(1);
+      },
+    );
+
     blocTest<NewsListCubit, NewsListState>(
       'should debounce search and call repository once for burst of inputs',
       build: () {
@@ -174,13 +316,20 @@ void main() {
       },
       wait: const Duration(milliseconds: 650),
       verify: (_) {
-        verify(() => repo.getHeadlines(country: 'us', page: 1)).called(1);
         verify(
           () => repo.getHeadlines(
             country: 'us',
+            category: any(named: 'category'),
+            page: 1,
+            query: any(named: 'query'),
+          ),
+        ).called(1);
+        verify(
+          () => repo.getHeadlines(
+            country: 'us',
+            category: any(named: 'category'),
             query: 'apple',
             page: 1,
-            category: any(named: 'category'),
           ),
         ).called(1);
       },

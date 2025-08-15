@@ -4,10 +4,10 @@ import 'package:news_app/app/theme/app_text.dart';
 import 'package:news_app/domain/enums/news_category.dart';
 
 class CategoryChips extends StatelessWidget {
-  const CategoryChips({super.key, required this.value, this.onSelected});
+  const CategoryChips({super.key, required this.values, this.onToggle});
 
-  final NewsCategory? value;
-  final ValueChanged<NewsCategory?>? onSelected;
+  final Set<NewsCategory> values;
+  final void Function(NewsCategory cat, bool selected)? onToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,7 @@ class CategoryChips extends StatelessWidget {
             const SizedBox(width: AppSizes.chipsSpacing),
         itemBuilder: (context, i) {
           final c = cats[i];
-          final selected = value == c;
+          final selected = values.contains(c);
           final text = c.name[0].toUpperCase() + c.name.substring(1);
 
           return RawChip(
@@ -37,7 +37,7 @@ class CategoryChips extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppSizes.chipsRadius),
             ),
             selected: selected,
-            onSelected: (_) => onSelected?.call(selected ? null : c),
+            onSelected: (sel) => onToggle?.call(c, sel),
             label: SizedBox(
               width: AppSizes.chipsWidth,
               height: AppSizes.chipsHeight,
