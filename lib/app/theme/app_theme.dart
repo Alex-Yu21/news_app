@@ -18,6 +18,7 @@ ThemeData buildAppTheme() {
       selectedColor: primary,
       backgroundColor: inactive,
     ),
+    textSelectionTheme: const TextSelectionThemeData(cursorColor: inactive),
     extensions: <ThemeExtension<dynamic>>[AppText.satoshi()],
   );
 }
