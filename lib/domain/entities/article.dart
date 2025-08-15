@@ -5,10 +5,10 @@ class Article {
   final String title;
   final String? description;
   final DateTime publishedAt;
-
   final String url;
   final String? urlToImage;
   final String sourceName;
+  final String? content;
 
   const Article({
     required this.title,
@@ -17,6 +17,7 @@ class Article {
     required this.url,
     required this.urlToImage,
     required this.sourceName,
+    this.content,
   });
 
   @override
@@ -28,12 +29,20 @@ class Article {
         other.publishedAt == publishedAt &&
         other.url == url &&
         other.urlToImage == urlToImage &&
-        other.sourceName == sourceName;
+        other.sourceName == sourceName &&
+        other.content == content;
   }
 
   @override
-  int get hashCode =>
-      Object.hash(title, description, publishedAt, url, urlToImage, sourceName);
+  int get hashCode => Object.hash(
+    title,
+    description,
+    publishedAt,
+    url,
+    urlToImage,
+    sourceName,
+    content,
+  );
 
   @override
   String toString() =>
