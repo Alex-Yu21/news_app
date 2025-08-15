@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:news_app/app/di/locator.dart';
+import 'package:news_app/app/router.dart';
 import 'package:news_app/app/theme/app_theme.dart';
 import 'package:news_app/presentation/cubit/news_list_cubit.dart';
-
-import 'router.dart';
 
 class App extends StatelessWidget {
   const App({super.key});

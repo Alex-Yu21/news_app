@@ -47,3 +47,7 @@ flutter:
 
   assets:
     - assets/icons/search_icon.svg
+    - assets/icons/favorite.svg
+    - assets/icons/favorite_pressed.svg
+    - assets/icons/news_list.svg
+    - assets/icons/news_list_pressed.svg
