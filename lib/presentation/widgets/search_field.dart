@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:news_app/app/theme/app_icons.dart';
 import 'package:news_app/app/theme/app_sizes.dart';
 import 'package:news_app/app/theme/app_text.dart';
 
@@ -8,8 +9,6 @@ class SearchField extends StatelessWidget {
   const SearchField({super.key, this.onChanged});
 
   final ValueChanged<String>? onChanged;
-
-  static const _iconAsset = 'assets/icons/search_icon.svg';
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +22,7 @@ class SearchField extends StatelessWidget {
           height: AppSizes.iconM,
           child: Center(
             child: SvgPicture.asset(
-              _iconAsset,
+              AppIcons.search,
               width: AppSizes.iconM,
               height: AppSizes.iconM,
             ),

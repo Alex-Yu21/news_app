@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:news_app/app/router.dart';
+import 'package:news_app/app/theme/app_icons.dart';
 import 'package:news_app/app/theme/app_sizes.dart';
 import 'package:news_app/app/theme/app_text.dart';
 import 'package:news_app/domain/entities/article.dart';
@@ -52,7 +53,7 @@ class NewsDetailsPage extends StatelessWidget {
               onPressed: () => context.pop(),
               padding: EdgeInsets.only(left: _screenPadding.left),
               icon: SvgPicture.asset(
-                'assets/icons/back_arrow.svg',
+                AppIcons.backArrow,
                 width: _arrowW,
                 height: _arrowH,
                 fit: BoxFit.contain,
@@ -107,6 +108,7 @@ class NewsDetailsPage extends StatelessWidget {
             ),
           const SizedBox(height: _imageBottomGap),
           if (hasBody) Text(article.content!.trim(), style: t.bodyLg),
+          // API не забирает статью полностью, решила дать ссылку на полный тест в конце
           Align(
             alignment: Alignment.bottomRight,
             child: TextButton(

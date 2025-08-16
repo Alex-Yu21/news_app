@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:news_app/app/theme/app_icons.dart';
 import 'package:news_app/domain/entities/article.dart';
 import 'package:news_app/presentation/cubit/favorites_cubit.dart';
 
@@ -30,7 +31,7 @@ class FavoriteButton extends StatelessWidget {
             constraints: const BoxConstraints(),
             splashRadius: (width > height ? width : height) / 2,
             icon: SvgPicture.asset(
-              isFav ? 'assets/icons/star_pressed.svg' : 'assets/icons/star.svg',
+              isFav ? AppIcons.starPr : AppIcons.star,
               fit: BoxFit.contain,
             ),
           ),

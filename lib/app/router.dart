@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:news_app/app/theme/app_icons.dart';
 import 'package:news_app/app/theme/app_sizes.dart';
 import 'package:news_app/domain/entities/article.dart';
 import 'package:news_app/presentation/pages/favorites_page.dart';
@@ -87,8 +88,8 @@ class AppShell extends StatelessWidget {
                         Expanded(
                           child: _NavItem(
                             isActive: currentIndex == 0,
-                            asset: 'assets/icons/news_list.svg',
-                            activeAsset: 'assets/icons/news_list_pressed.svg',
+                            asset: AppIcons.newsList,
+                            activeAsset: AppIcons.newsListPr,
                             size: _kNewsIconSize,
                             onTap: () => _onTap(context, 0),
                           ),
@@ -96,8 +97,8 @@ class AppShell extends StatelessWidget {
                         Expanded(
                           child: _NavItem(
                             isActive: currentIndex == 1,
-                            asset: 'assets/icons/favorite.svg',
-                            activeAsset: 'assets/icons/favorite_pressed.svg',
+                            asset: AppIcons.fvt,
+                            activeAsset: AppIcons.fvtPr,
                             size: _kFavIconSize,
                             onTap: () => _onTap(context, 1),
                           ),
