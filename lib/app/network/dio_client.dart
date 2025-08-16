@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import 'api_key_interceptor.dart';
 
@@ -16,12 +17,11 @@ class DioClient {
 
     dio.interceptors.add(ApiKeyInterceptor());
 
-    assert(() {
+    if (kDebugMode) {
       dio.interceptors.add(
         LogInterceptor(requestBody: false, responseBody: false),
       );
-      return true;
-    }());
+    }
 
     return dio;
   }
