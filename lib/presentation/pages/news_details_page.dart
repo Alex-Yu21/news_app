@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:news_app/app/router.dart';
+import 'package:news_app/app/theme/app_sizes.dart';
 import 'package:news_app/app/theme/app_text.dart';
 import 'package:news_app/domain/entities/article.dart';
 import 'package:news_app/presentation/widgets/favorite_button.dart';
@@ -20,13 +21,6 @@ class NewsDetailsPage extends StatelessWidget {
     final date = DateFormat('MM.dd.yyyy').format(article.publishedAt);
     final subtitle = (article.description ?? '').trim();
     final body = (article.content ?? '').trim();
-
-    final bottomInset = MediaQuery.of(context).padding.bottom;
-    const navBarHeight = 84.0;
-    const navBarOuterBottom = 12.0;
-    const extra = 12.0;
-    final bottomPadding =
-        navBarHeight + navBarOuterBottom + bottomInset + extra;
 
     return Scaffold(
       appBar: AppBar(
@@ -58,7 +52,11 @@ class NewsDetailsPage extends StatelessWidget {
       ),
       backgroundColor: Colors.white,
       body: ListView(
-        padding: EdgeInsets.only(left: 22, right: 22, bottom: bottomPadding),
+        padding: EdgeInsets.only(
+          left: 22,
+          right: 22,
+          bottom: AppSizes.bottomPadding(context),
+        ),
         children: [
           const SizedBox(height: 8.38),
           Text(article.title, style: text?.titleLg),

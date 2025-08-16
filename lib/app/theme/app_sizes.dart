@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class AppSizes {
   static const double chipsWidth = 114.0;
   static const double chipsHeight = 44.0;
@@ -10,4 +12,13 @@ class AppSizes {
   static const double iconS = 26.0;
 
   static const double radS = 16;
+
+  static const double navBarHeight = 84;
+  static const double navBarOuterBottom = 12;
+  static const double extra = 12;
+
+  static double bottomPadding(BuildContext context) {
+    final inset = MediaQuery.paddingOf(context).bottom;
+    return navBarHeight + navBarOuterBottom + inset + extra;
+  }
 }

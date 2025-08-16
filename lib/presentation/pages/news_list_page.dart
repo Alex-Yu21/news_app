@@ -200,18 +200,12 @@ class _ArticlesListState extends State<_ArticlesList> {
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).padding.bottom;
-    const navBarHeight = 84.0;
-    const navBarOuterBottom = 12.0;
-
     return RefreshIndicator(
       onRefresh: widget.onRefresh,
       child: ListView.builder(
         controller: _controller,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.only(
-          bottom: navBarHeight + navBarOuterBottom + bottomInset + 12,
-        ),
+        padding: EdgeInsets.only(bottom: AppSizes.bottomPadding(context)),
         itemCount: widget.items.length + (widget.hasMore ? 1 : 0),
         itemBuilder: (_, i) {
           if (i < widget.items.length) {
