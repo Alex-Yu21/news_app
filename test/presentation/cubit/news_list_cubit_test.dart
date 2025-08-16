@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:news_app/core/errors/failures.dart';
 import 'package:news_app/domain/entities/article.dart';
 import 'package:news_app/domain/enums/news_category.dart';
 import 'package:news_app/domain/repositories/news_repository.dart';
@@ -89,6 +90,7 @@ void main() {
         ),
       ],
     );
+
     blocTest<NewsListCubit, NewsListState>(
       'should reload headlines when single category toggled on',
       build: () {
@@ -180,6 +182,7 @@ void main() {
             page: any(named: 'page'),
           ),
         ).thenAnswer((_) async => [a('b1'), a('dupe')]);
+
         when(
           () => repo.getHeadlines(
             country: any(named: 'country'),
@@ -219,7 +222,6 @@ void main() {
             .having((s) => s.status, 'status', NewsListStatus.success)
             .having((s) => s.categories.length, 'categories count', 1)
             .having((s) => s.items.length, 'items', 2),
-
         isA<NewsListState>()
             .having((s) => s.status, 'status', NewsListStatus.loading)
             .having(
@@ -328,5 +330,59 @@ void main() {
         ).called(1);
       },
     );
+
+    group('errors', () {
+      blocTest<NewsListCubit, NewsListState>(
+        'should emit loading then error on network failure',
+        build: () {
+          when(
+            () => repo.getHeadlines(
+              country: any(named: 'country'),
+              category: any(named: 'category'),
+              query: any(named: 'query'),
+              page: any(named: 'page'),
+            ),
+          ).thenThrow(const NetworkFailure('No internet connection.'));
+          return NewsListCubit(repo, fetchOnStart: false);
+        },
+        act: (cubit) => cubit.load(reset: true, page: 1),
+        expect: () => [
+          isA<NewsListState>().having(
+            (s) => s.status,
+            'status',
+            NewsListStatus.loading,
+          ),
+          isA<NewsListState>()
+              .having((s) => s.status, 'status', NewsListStatus.error)
+              .having((s) => s.error, 'error', 'No internet connection.'),
+        ],
+      );
+
+      blocTest<NewsListCubit, NewsListState>(
+        'should emit loading then error on api 500',
+        build: () {
+          when(
+            () => repo.getHeadlines(
+              country: any(named: 'country'),
+              category: any(named: 'category'),
+              query: any(named: 'query'),
+              page: any(named: 'page'),
+            ),
+          ).thenThrow(const ApiFailure('Server error', statusCode: 500));
+          return NewsListCubit(repo, fetchOnStart: false);
+        },
+        act: (cubit) => cubit.load(reset: true, page: 1),
+        expect: () => [
+          isA<NewsListState>().having(
+            (s) => s.status,
+            'status',
+            NewsListStatus.loading,
+          ),
+          isA<NewsListState>()
+              .having((s) => s.status, 'status', NewsListStatus.error)
+              .having((s) => s.error, 'error', 'Server error'),
+        ],
+      );
+    });
   });
 }
