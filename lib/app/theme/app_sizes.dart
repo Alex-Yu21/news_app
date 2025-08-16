@@ -11,11 +11,12 @@ class AppSizes {
   static const double iconM = 32.0;
   static const double iconS = 26.0;
 
-  static const double radS = 16;
+  static const double radS = 16.0;
+  static const double radImage = 27.0;
 
-  static const double navBarHeight = 84;
-  static const double navBarOuterBottom = 12;
-  static const double extra = 12;
+  static const double navBarHeight = 84.0;
+  static const double navBarOuterBottom = 12.0;
+  static const double extra = 12.0;
 
   static double bottomPadding(BuildContext context) {
     final inset = MediaQuery.paddingOf(context).bottom;

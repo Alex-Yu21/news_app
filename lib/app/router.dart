@@ -5,6 +5,7 @@ import 'package:news_app/domain/entities/article.dart';
 import 'package:news_app/presentation/pages/favorites_page.dart';
 import 'package:news_app/presentation/pages/news_details_page.dart';
 import 'package:news_app/presentation/pages/news_list_page.dart';
+import 'package:news_app/presentation/widgets/card_shadow.dart';
 
 const double _kLR = 19;
 const double _kBottomGap = 20;
@@ -81,17 +82,7 @@ class _BottomNavBar extends StatelessWidget {
       right: _kLR,
       bottom: bottomInset + _kBottomGap,
       height: _kBarHeight,
-      child: DecoratedBox(
-        decoration: const BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: _kShadowColor,
-              blurRadius: 6.1,
-              offset: Offset(0, 3),
-              spreadRadius: 0,
-            ),
-          ],
-        ),
+      child: CardShadow(
         child: Material(
           color: Colors.white,
           shape: _shape,

@@ -6,6 +6,7 @@ import 'package:news_app/app/theme/app_sizes.dart';
 import 'package:news_app/domain/entities/article.dart';
 import 'package:news_app/presentation/cubit/news_list_cubit.dart';
 import 'package:news_app/presentation/widgets/article_card.dart';
+import 'package:news_app/presentation/widgets/card_shadow.dart';
 import 'package:news_app/presentation/widgets/category_chips.dart';
 import 'package:news_app/presentation/widgets/search_field.dart';
 import 'package:news_app/presentation/widgets/slide_up_reveal.dart';
@@ -201,18 +202,7 @@ class _ArticlesListState extends State<_ArticlesList> {
             final Article article = widget.items[i];
             return Padding(
               padding: const EdgeInsets.only(bottom: 16, left: 19, right: 19),
-              child: DecoratedBox(
-                decoration: const BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(16)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0x26000000),
-                      blurRadius: 6.1,
-                      offset: Offset(0, 3),
-                      spreadRadius: 0,
-                    ),
-                  ],
-                ),
+              child: CardShadow(
                 child: ArticleCard(
                   article: article,
                   heroTag: articleHeroTag(article),

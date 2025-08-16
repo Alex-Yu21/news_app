@@ -7,6 +7,7 @@ import 'package:news_app/app/router.dart';
 import 'package:news_app/app/theme/app_sizes.dart';
 import 'package:news_app/app/theme/app_text.dart';
 import 'package:news_app/domain/entities/article.dart';
+import 'package:news_app/presentation/widgets/card_shadow.dart';
 import 'package:news_app/presentation/widgets/favorite_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -52,9 +53,10 @@ class NewsDetailsPage extends StatelessWidget {
       ),
       backgroundColor: Colors.white,
       body: ListView(
+        clipBehavior: Clip.none,
         padding: EdgeInsets.only(
-          left: 22,
-          right: 22,
+          left: 16,
+          right: 16,
           bottom: AppSizes.bottomPadding(context),
         ),
         children: [
@@ -69,22 +71,29 @@ class NewsDetailsPage extends StatelessWidget {
               Text(date, style: text?.body),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           if ((article.urlToImage ?? '').isNotEmpty)
-            ClipRRect(
-              borderRadius: const BorderRadius.all(Radius.circular(28)),
+            CardShadow(
+              radius: const BorderRadius.all(
+                Radius.circular(AppSizes.radImage),
+              ),
               child: Hero(
                 tag: articleHeroTag(article),
-                child: AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: CachedNetworkImage(
-                    imageUrl: article.urlToImage!,
-                    fit: BoxFit.cover,
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(AppSizes.radImage),
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: CachedNetworkImage(
+                      imageUrl: article.urlToImage!,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ),
             ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 18),
           if (body.isNotEmpty) Text(body, style: text?.bodyLg),
           Align(
             alignment: Alignment.bottomRight,
