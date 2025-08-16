@@ -56,7 +56,7 @@ void main() {
             country: 'us',
             page: 1,
             category: null,
-            query: any(named: 'query'),
+            query: any(named: 'query', that: isNull),
           ),
         ).called(1);
       },
@@ -145,7 +145,7 @@ void main() {
             country: 'us',
             category: null,
             page: 1,
-            query: any(named: 'query'),
+            query: any(named: 'query', that: isNull),
           ),
         ).called(1);
 
@@ -171,15 +171,6 @@ void main() {
             page: any(named: 'page'),
           ),
         ).thenAnswer((_) async => [a('init')]);
-
-        when(
-          () => repo.getHeadlines(
-            country: any(named: 'country'),
-            category: NewsCategory.business,
-            query: any(named: 'query'),
-            page: 1,
-          ),
-        ).thenAnswer((_) async => [a('b1'), a('dupe')]);
 
         when(
           () => repo.getHeadlines(
@@ -215,9 +206,8 @@ void main() {
         ),
         isA<NewsListState>()
             .having((s) => s.status, 'status', NewsListStatus.success)
-            .having((s) => s.items.length, 'items', 1)
-            .having((s) => s.categories.isEmpty, 'no categories', true),
-
+            .having((s) => s.categories.isEmpty, 'no categories', true)
+            .having((s) => s.items.length, 'items', 1),
         isA<NewsListState>()
             .having((s) => s.status, 'status', NewsListStatus.loading)
             .having(
@@ -261,7 +251,7 @@ void main() {
             country: 'us',
             category: null,
             page: 1,
-            query: any(named: 'query'),
+            query: any(named: 'query', that: isNull),
           ),
         ).called(1);
 
@@ -292,38 +282,42 @@ void main() {
           () => repo.getHeadlines(
             country: any(named: 'country'),
             category: any(named: 'category'),
-            query: any(named: 'query'),
-            page: any(named: 'page'),
-          ),
-        ).thenAnswer((_) async => [a('init')]);
-
-        when(
-          () => repo.getHeadlines(
-            country: any(named: 'country'),
-            category: any(named: 'category'),
             query: 'apple',
             page: 1,
           ),
         ).thenAnswer((_) async => [a('apple1'), a('apple2')]);
 
-        return NewsListCubit(repo);
+        return NewsListCubit(
+          repo,
+          fetchOnStart: false,
+          debounceDuration: const Duration(milliseconds: 120),
+        );
       },
       act: (cubit) async {
-        await Future<void>.delayed(const Duration(milliseconds: 10));
         cubit.onQueryChanged('a');
         cubit.onQueryChanged('ap');
         cubit.onQueryChanged('apple');
       },
-      wait: const Duration(milliseconds: 650),
+      wait: const Duration(milliseconds: 200),
+      expect: () => [
+        isA<NewsListState>().having(
+          (s) => s.status,
+          'status',
+          NewsListStatus.loading,
+        ),
+        isA<NewsListState>()
+            .having((s) => s.status, 'status', NewsListStatus.success)
+            .having((s) => s.items.length, 'items', 2),
+      ],
       verify: (_) {
-        verify(
+        verifyNever(
           () => repo.getHeadlines(
             country: 'us',
             category: any(named: 'category'),
-            page: 1,
-            query: any(named: 'query'),
+            page: any(named: 'page'),
+            query: any(named: 'query', that: isNull),
           ),
-        ).called(1);
+        );
         verify(
           () => repo.getHeadlines(
             country: 'us',

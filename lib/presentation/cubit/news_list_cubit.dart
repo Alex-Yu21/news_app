@@ -76,11 +76,20 @@ class NewsListState extends Equatable {
 
 class NewsListCubit extends Cubit<NewsListState> {
   final NewsRepository _repo;
+  final bool fetchOnStart;
+  final Duration debounceDuration;
+
   Timer? _debounce;
   bool _isFetching = false;
 
-  NewsListCubit(this._repo) : super(const NewsListState()) {
-    scheduleMicrotask(_loadInitial);
+  NewsListCubit(
+    this._repo, {
+    this.fetchOnStart = true,
+    this.debounceDuration = const Duration(milliseconds: 500),
+  }) : super(const NewsListState()) {
+    if (fetchOnStart) {
+      scheduleMicrotask(_loadInitial);
+    }
   }
 
   Future<void> _loadInitial() => load(reset: true, page: 1);
@@ -171,9 +180,9 @@ class NewsListCubit extends Cubit<NewsListState> {
         );
       } else {
         final pages = Map<NewsCategory, int>.from(
-          nextCategoryPages.isEmpty
+          state.categoryPages.isEmpty
               ? {for (final c in nextCategories) c: 1}
-              : nextCategoryPages,
+              : state.categoryPages,
         );
 
         final futures = <Future<List<Article>>>[];
@@ -241,7 +250,7 @@ class NewsListCubit extends Cubit<NewsListState> {
     final val = q.trim().isEmpty ? null : q.trim();
     if (state.query == val) return;
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () {
+    _debounce = Timer(debounceDuration, () {
       load(reset: true, page: 1, query: val);
     });
   }
