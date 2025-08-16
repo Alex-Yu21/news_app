@@ -6,7 +6,11 @@ ThemeData buildAppTheme() {
   const primary = Color(0xFF2F78FF);
   const inactive = Color(0xFFC1C1C1);
 
-  final base = ThemeData(useMaterial3: true, fontFamily: 'Satoshi');
+  final base = ThemeData(
+    useMaterial3: true,
+    fontFamily: 'Satoshi',
+    colorScheme: ColorScheme.fromSeed(seedColor: primary),
+  );
 
   return base.copyWith(
     scaffoldBackgroundColor: Colors.white,
@@ -24,6 +28,7 @@ ThemeData buildAppTheme() {
     progressIndicatorTheme: const ProgressIndicatorThemeData(
       color: primary,
       circularTrackColor: inactive,
+      refreshBackgroundColor: Colors.white,
     ),
 
     textButtonTheme: TextButtonThemeData(

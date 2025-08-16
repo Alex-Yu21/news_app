@@ -26,10 +26,9 @@ class ArticleCard extends StatelessWidget {
     bottomLeft: Radius.circular(AppSizes.radS),
   );
 
-  static const _gapX12 = SizedBox(width: 12);
-  static const _gapY4 = SizedBox(height: 4);
+  static const _gapBwImageAndTitle = SizedBox(width: 12);
 
-  static const _titlePadding = EdgeInsets.only(top: 5, right: 11);
+  static const _starPadding = EdgeInsets.only(top: 5, right: 11);
   static const _datePadding = EdgeInsets.only(bottom: 6, right: 11);
 
   String _formatDate(DateTime? dt) =>
@@ -68,13 +67,13 @@ class ArticleCard extends StatelessWidget {
                   sourceName: article.sourceName,
                   heroTag: heroTag,
                 ),
-                _gapX12,
+                _gapBwImageAndTitle,
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: _titlePadding,
+                        padding: _starPadding,
                         child: Row(
                           children: [
                             Expanded(
@@ -89,17 +88,12 @@ class ArticleCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                      _gapY4,
                       if (subtitle.isNotEmpty)
                         Text(
                           subtitle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: text.body,
-                          strutStyle: const StrutStyle(
-                            forceStrutHeight: true,
-                            height: 1.3,
-                          ),
                         ),
                       const Spacer(),
                       Align(

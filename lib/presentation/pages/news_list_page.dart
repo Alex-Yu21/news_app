@@ -11,16 +11,19 @@ import 'package:news_app/presentation/widgets/category_chips.dart';
 import 'package:news_app/presentation/widgets/search_field.dart';
 import 'package:news_app/presentation/widgets/slide_up_reveal.dart';
 
+const _kSearchPadding = EdgeInsets.only(top: 28, left: 22, right: 22);
+const _kChipsPadding = EdgeInsets.only(
+  top: 34,
+  left: 19,
+  right: 19,
+  bottom: 22,
+);
+const _kListItemPadding = EdgeInsets.only(bottom: 16, left: 19, right: 19);
+const _kScrollThresholdPx = 400.0;
+const _kMaxAutoTries = 3;
+
 class NewsListPage extends StatelessWidget {
   const NewsListPage({super.key});
-
-  static const _searchPadding = EdgeInsets.only(top: 28, left: 22, right: 22);
-  static const _chipsPadding = EdgeInsets.only(
-    top: 34,
-    left: 19,
-    right: 19,
-    bottom: 22,
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -35,12 +38,9 @@ class NewsListPage extends StatelessWidget {
 
               return Column(
                 children: [
+                  const Padding(padding: _kSearchPadding, child: SearchField()),
                   Padding(
-                    padding: _searchPadding,
-                    child: SearchField(onChanged: cubit.onQueryChanged),
-                  ),
-                  Padding(
-                    padding: _chipsPadding,
+                    padding: _kChipsPadding,
                     child: CategoryChips(
                       values: state.categories,
                       onToggle: cubit.onToggleCategory,
@@ -109,6 +109,7 @@ class _NewsListBodyState extends State<_NewsListBody> {
           onFetchMore: cubit.fetchMore,
           onRefresh: () => cubit.load(reset: true, page: 1),
         );
+
         return SlideUpReveal(
           enabled: shouldAnimate,
           from: AppSizes.bottomPadding(context),
@@ -141,14 +142,11 @@ class _ArticlesList extends StatefulWidget {
 class _ArticlesListState extends State<_ArticlesList> {
   late final ScrollController _controller;
   int _autoTries = 0;
-  static const _kThresholdPx = 400.0;
-  static const _kMaxAutoTries = 3;
 
   @override
   void initState() {
     super.initState();
     _controller = ScrollController()..addListener(_onScroll);
-
     WidgetsBinding.instance.addPostFrameCallback((_) => _tryAutoFetchIfShort());
   }
 
@@ -164,15 +162,13 @@ class _ArticlesListState extends State<_ArticlesList> {
 
   void _onScroll() {
     if (!_controller.hasClients || !widget.hasMore) return;
-    final extentAfter = _controller.position.extentAfter;
-    if (extentAfter < _kThresholdPx) {
+    if (_controller.position.extentAfter < _kScrollThresholdPx) {
       widget.onFetchMore();
     }
   }
 
   void _tryAutoFetchIfShort() {
     if (!mounted || !widget.hasMore || !_controller.hasClients) return;
-
     final isShort = _controller.position.maxScrollExtent <= 0;
     if (isShort && _autoTries < _kMaxAutoTries) {
       _autoTries++;
@@ -199,9 +195,9 @@ class _ArticlesListState extends State<_ArticlesList> {
         itemCount: widget.items.length + (widget.hasMore ? 1 : 0),
         itemBuilder: (_, i) {
           if (i < widget.items.length) {
-            final Article article = widget.items[i];
+            final article = widget.items[i];
             return Padding(
-              padding: const EdgeInsets.only(bottom: 16, left: 19, right: 19),
+              padding: _kListItemPadding,
               child: CardShadow(
                 child: ArticleCard(
                   article: article,
@@ -212,7 +208,7 @@ class _ArticlesListState extends State<_ArticlesList> {
             );
           }
           return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
+            padding: EdgeInsets.symmetric(vertical: AppSizes.padding12),
             child: Center(
               child: SizedBox(
                 width: AppSizes.iconM,
@@ -237,12 +233,12 @@ class _ErrorView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(AppSizes.padding12),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(message, textAlign: TextAlign.center),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSizes.padding12),
             FilledButton(onPressed: onRetry, child: const Text('Retry')),
           ],
         ),

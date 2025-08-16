@@ -6,6 +6,7 @@ import 'package:news_app/app/theme/app_sizes.dart';
 import 'package:news_app/domain/entities/article.dart';
 import 'package:news_app/presentation/cubit/favorites_cubit.dart';
 import 'package:news_app/presentation/widgets/article_card.dart';
+import 'package:news_app/presentation/widgets/card_shadow.dart';
 import 'package:news_app/presentation/widgets/favorite_button.dart';
 import 'package:news_app/presentation/widgets/slide_up_reveal.dart';
 
@@ -30,23 +31,10 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
   String _id(Article a) => a.url;
 
-  static const _cardShadowDecoration = BoxDecoration(
-    borderRadius: BorderRadius.all(Radius.circular(16)),
-    boxShadow: [
-      BoxShadow(
-        color: Color(0x26000000),
-        blurRadius: 6.1,
-        offset: Offset(0, 3),
-        spreadRadius: 0,
-      ),
-    ],
-  );
-
   Widget _builCard(Article a) {
     return InkWell(
       onTap: () => context.pushNamed('details', extra: a),
-      child: DecoratedBox(
-        decoration: _cardShadowDecoration,
+      child: CardShadow(
         child: ArticleCard(
           article: a,
           heroTag: articleHeroTag(a),
