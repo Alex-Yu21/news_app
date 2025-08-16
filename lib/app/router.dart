@@ -152,6 +152,7 @@ final GoRouter appRouter = GoRouter(
             GoRoute(
               path: 'details',
               name: 'details',
+              redirect: (context, state) => state.extra is Article ? null : '/',
               builder: (context, state) {
                 final article = state.extra! as Article;
                 return NewsDetailsPage(article: article);
