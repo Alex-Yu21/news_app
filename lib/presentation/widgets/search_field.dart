@@ -9,27 +9,46 @@ class SearchField extends StatelessWidget {
 
   final ValueChanged<String>? onChanged;
 
+  static const _iconAsset = 'assets/icons/search_icon.svg';
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).extension<AppText>()!;
-    return TextField(
-      onChanged: onChanged,
-      textAlignVertical: TextAlignVertical.center,
-      cursorHeight: AppSizes.iconM,
-      textInputAction: TextInputAction.search,
-      style: text.body,
-      decoration: InputDecoration(
-        prefixIcon: SvgPicture.asset(
-          'assets/icons/search_icon.svg',
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SizedBox(
           width: AppSizes.iconM,
           height: AppSizes.iconM,
+          child: Center(
+            child: SvgPicture.asset(
+              _iconAsset,
+              width: AppSizes.iconM,
+              height: AppSizes.iconM,
+            ),
+          ),
         ),
-        border: InputBorder.none,
-        enabledBorder: InputBorder.none,
-        focusedBorder: InputBorder.none,
-      ),
-      enableSuggestions: false,
-      inputFormatters: const <TextInputFormatter>[],
+        Expanded(
+          child: TextField(
+            onChanged: onChanged,
+            textAlignVertical: TextAlignVertical.center,
+            cursorHeight: AppSizes.iconM,
+            textInputAction: TextInputAction.search,
+            style: text.body,
+            decoration: const InputDecoration(
+              isDense: true,
+              contentPadding: EdgeInsets.zero,
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              hintText: '',
+            ),
+            enableSuggestions: false,
+            inputFormatters: const <TextInputFormatter>[],
+          ),
+        ),
+      ],
     );
   }
 }

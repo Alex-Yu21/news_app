@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:news_app/app/theme/app_sizes.dart';
 import 'package:news_app/app/theme/app_text.dart';
 import 'package:news_app/domain/enums/news_category.dart';
 
@@ -9,53 +8,55 @@ class CategoryChips extends StatelessWidget {
   final Set<NewsCategory> values;
   final void Function(NewsCategory cat, bool selected)? onToggle;
 
+  static const _chipWidth = 114.0;
+  static const _chipHeight = 44.0;
+  static const _chipRadius = 22.0;
+  static const _chipSpacing = 7.0;
+
   @override
   Widget build(BuildContext context) {
     final style = Theme.of(context).extension<AppText>()!;
     final cats = NewsCategory.values;
 
     return SizedBox(
-      height: AppSizes.chipsHeight,
+      height: _chipHeight,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.zero,
         clipBehavior: Clip.none,
         itemCount: cats.length,
-        separatorBuilder: (_, __) =>
-            const SizedBox(width: AppSizes.chipsSpacing),
+        separatorBuilder: (_, __) => const SizedBox(width: _chipSpacing),
         itemBuilder: (context, i) {
           final c = cats[i];
           final selected = values.contains(c);
           final text = c.name[0].toUpperCase() + c.name.substring(1);
 
-          return RawChip(
-            showCheckmark: false,
-            labelPadding: EdgeInsets.zero,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppSizes.chipsRadius),
-            ),
-            selected: selected,
-            onSelected: (sel) => onToggle?.call(c, sel),
-            label: SizedBox(
-              width: AppSizes.chipsWidth,
-              height: AppSizes.chipsHeight,
-              child: Center(
+          return SizedBox(
+            width: _chipWidth,
+            height: _chipHeight,
+            child: RawChip(
+              showCheckmark: false,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              padding: EdgeInsets.zero,
+              labelPadding: EdgeInsets.zero,
+              side: BorderSide.none,
+
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(_chipRadius),
+              ),
+              selected: selected,
+              onSelected: (sel) => onToggle?.call(c, sel),
+
+              label: Center(
                 child: Text(
                   text,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
-                  textHeightBehavior: const TextHeightBehavior(
-                    applyHeightToFirstAscent: false,
-                    applyHeightToLastDescent: false,
+                  style: style.caption.copyWith(
+                    color: Colors.white,
+                    height: 1.0,
                   ),
-                  strutStyle: const StrutStyle(
-                    forceStrutHeight: true,
-                    height: 0.1,
-                  ),
-                  style: style.caption.copyWith(color: Colors.white),
                 ),
               ),
             ),

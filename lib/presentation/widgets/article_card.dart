@@ -21,6 +21,9 @@ class ArticleCard extends StatelessWidget {
 
   static const _cardBorder = BorderSide(color: Color(0xFFCECECE), width: 0.5);
   static const _cardRadius = BorderRadius.all(AppSizes.radS);
+
+  static const double _imageHeigth = 112.0;
+  static const double _imageWidth = 123.0;
   static const _imageClipRadius = BorderRadius.only(
     topLeft: AppSizes.radS,
     bottomLeft: AppSizes.radS,
@@ -58,11 +61,13 @@ class ArticleCard extends StatelessWidget {
           onTap: onTap,
           borderRadius: _cardRadius,
           child: SizedBox(
-            height: AppSizes.imageHeigth,
+            height: _imageHeigth,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 _CardImage(
+                  imageHeigth: _imageHeigth,
+                  imageWidth: _imageWidth,
                   url: article.urlToImage,
                   sourceName: article.sourceName,
                   heroTag: heroTag,
@@ -116,17 +121,26 @@ class ArticleCard extends StatelessWidget {
 }
 
 class _CardImage extends StatelessWidget {
-  const _CardImage({required this.url, required this.sourceName, this.heroTag});
+  const _CardImage({
+    required this.url,
+    required this.sourceName,
+    this.heroTag,
+    required this.imageWidth,
+    required this.imageHeigth,
+  });
 
   final String? url;
   final String sourceName;
   final Object? heroTag;
 
+  final double imageWidth;
+  final double imageHeigth;
+
   @override
   Widget build(BuildContext context) {
     Widget child = SizedBox(
-      width: AppSizes.imageWidth,
-      height: AppSizes.imageHeigth,
+      width: imageWidth,
+      height: imageHeigth,
       child: _ArticleImage(url: url, sourceName: sourceName),
     );
 

@@ -90,10 +90,16 @@ class NewsDetailsPage extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: br,
                   child: AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: CachedNetworkImage(
-                      imageUrl: article.urlToImage!,
-                      fit: BoxFit.cover,
+                    aspectRatio: 328 / 265,
+                    child: CardShadow(
+                      radius: br,
+                      child: ClipRRect(
+                        borderRadius: br,
+                        child: CachedNetworkImage(
+                          imageUrl: article.urlToImage!,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
                     ),
                   ),
                 ),
