@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:news_app/app/theme/app_sizes.dart';
 import 'package:news_app/domain/entities/article.dart';
 import 'package:news_app/presentation/pages/favorites_page.dart';
 import 'package:news_app/presentation/pages/news_details_page.dart';
 import 'package:news_app/presentation/pages/news_list_page.dart';
 import 'package:news_app/presentation/widgets/card_shadow.dart';
 
-const double _kLR = 19;
-const double _kBottomGap = 20;
-const double _kBarHeight = 84;
-const double _kRadius = 16;
-const Color _kBorderColor = Color(0xFFCECECE);
-const Color _kShadowColor = Color(0x26000000);
+const _kBarPadding = EdgeInsets.symmetric(horizontal: 19);
+const _kBarBottomGap = 20.0;
+const _kBarHeight = 84.0;
 
-const Size _kNewsIconSize = Size(36, 27);
-const Size _kFavIconSize = Size(41, 33);
+const _kNewsIconSize = Size(36, 27);
+const _kFavIconSize = Size(41, 33);
 
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.child});
@@ -45,74 +43,63 @@ class AppShell extends StatelessWidget {
             left: 0,
             right: 0,
             bottom: 0,
-            height: bottomInset + _kBottomGap + _kBarHeight / 2,
-            child: const IgnorePointer(child: ColoredBox(color: Colors.white)),
-          ),
-          _BottomNavBar(
-            bottomInset: bottomInset,
-            currentIndex: currentIndex,
-            onTap: (i) => _onTap(context, i),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BottomNavBar extends StatelessWidget {
-  const _BottomNavBar({
-    required this.bottomInset,
-    required this.currentIndex,
-    required this.onTap,
-  });
-
-  final double bottomInset;
-  final int currentIndex;
-  final ValueChanged<int> onTap;
-
-  static const _shape = RoundedRectangleBorder(
-    borderRadius: BorderRadius.all(Radius.circular(_kRadius)),
-    side: BorderSide(color: _kBorderColor, width: 0.5),
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      left: _kLR,
-      right: _kLR,
-      bottom: bottomInset + _kBottomGap,
-      height: _kBarHeight,
-      child: CardShadow(
-        child: Material(
-          color: Colors.white,
-          shape: _shape,
-          clipBehavior: Clip.antiAlias,
-          child: SizedBox(
-            height: _kBarHeight,
-            child: Row(
-              children: [
-                Expanded(
-                  child: _NavItem(
-                    isActive: currentIndex == 0,
-                    asset: 'assets/icons/news_list.svg',
-                    activeAsset: 'assets/icons/news_list_pressed.svg',
-                    size: _kNewsIconSize,
-                    onTap: () => onTap(0),
-                  ),
+            height: bottomInset + _kBarBottomGap + _kBarHeight,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0x00FFFFFF), Colors.white],
+                  stops: [0, 0.15],
                 ),
-                Expanded(
-                  child: _NavItem(
-                    isActive: currentIndex == 1,
-                    asset: 'assets/icons/favorite.svg',
-                    activeAsset: 'assets/icons/favorite_pressed.svg',
-                    size: _kFavIconSize,
-                    onTap: () => onTap(1),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: bottomInset + _kBarBottomGap,
+            height: _kBarHeight,
+            child: Padding(
+              padding: _kBarPadding,
+              child: CardShadow(
+                child: Material(
+                  color: Colors.white,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(AppSizes.radS),
+                    side: BorderSide(color: Color(0xFFCECECE), width: 0.5),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: SizedBox(
+                    height: _kBarHeight,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _NavItem(
+                            isActive: currentIndex == 0,
+                            asset: 'assets/icons/news_list.svg',
+                            activeAsset: 'assets/icons/news_list_pressed.svg',
+                            size: _kNewsIconSize,
+                            onTap: () => _onTap(context, 0),
+                          ),
+                        ),
+                        Expanded(
+                          child: _NavItem(
+                            isActive: currentIndex == 1,
+                            asset: 'assets/icons/favorite.svg',
+                            activeAsset: 'assets/icons/favorite_pressed.svg',
+                            size: _kFavIconSize,
+                            onTap: () => _onTap(context, 1),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -136,10 +123,8 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final a = isActive ? activeAsset : asset;
-    return InkResponse(
+    return InkWell(
       onTap: onTap,
-      containedInkWell: true,
-      highlightShape: BoxShape.rectangle,
       splashFactory: InkRipple.splashFactory,
       child: Center(
         child: SizedBox(
