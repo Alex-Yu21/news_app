@@ -16,7 +16,6 @@ class SearchField extends StatelessWidget {
       onChanged: onChanged,
       textAlignVertical: TextAlignVertical.center,
       cursorHeight: AppSizes.iconM,
-      cursorWidth: AppSizes.iconM,
       textInputAction: TextInputAction.search,
       style: text.body,
       decoration: InputDecoration(

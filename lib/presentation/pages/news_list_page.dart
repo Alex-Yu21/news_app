@@ -38,7 +38,10 @@ class NewsListPage extends StatelessWidget {
 
               return Column(
                 children: [
-                  const Padding(padding: _kSearchPadding, child: SearchField()),
+                  Padding(
+                    padding: _kSearchPadding,
+                    child: SearchField(onChanged: cubit.onQueryChanged),
+                  ),
                   Padding(
                     padding: _kChipsPadding,
                     child: CategoryChips(
