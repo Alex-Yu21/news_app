@@ -33,9 +33,9 @@ class NewsDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.appText;
     final date = DateFormat('MM.dd.yyyy').format(article.publishedAt);
-    final hasSubtitle = (article.description ?? '').trim().isNotEmpty;
-    final hasBody = (article.content ?? '').trim().isNotEmpty;
-    final hasImage = (article.urlToImage ?? '').isNotEmpty;
+    final subtitle = article.description;
+    final body = article.content;
+    final imageUrl = article.urlToImage;
     final br = const BorderRadius.all(Radius.circular(AppSizes.radImage));
 
     return Scaffold(
@@ -73,8 +73,7 @@ class NewsDetailsPage extends StatelessWidget {
         ),
         children: [
           Text(article.title, style: t.titleLg),
-          if (hasSubtitle)
-            Text(article.description!.trim(), style: t.subtitleLg),
+          if (subtitle != null) Text(subtitle, style: t.subtitleLg),
           const SizedBox(height: _gapAfterSubtitle),
           Row(
             children: [
@@ -83,7 +82,7 @@ class NewsDetailsPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: _imageTopGap),
-          if (hasImage)
+          if (imageUrl != null)
             CardShadow(
               radius: br,
               child: Hero(
@@ -97,7 +96,7 @@ class NewsDetailsPage extends StatelessWidget {
                       child: ClipRRect(
                         borderRadius: br,
                         child: CachedNetworkImage(
-                          imageUrl: article.urlToImage!,
+                          imageUrl: imageUrl,
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -107,7 +106,7 @@ class NewsDetailsPage extends StatelessWidget {
               ),
             ),
           const SizedBox(height: _imageBottomGap),
-          if (hasBody) Text(article.content!.trim(), style: t.bodyLg),
+          if (body != null) Text(body, style: t.bodyLg),
           // API не забирает статью полностью, решила дать ссылку на полный тест в конце
           Align(
             alignment: Alignment.bottomRight,

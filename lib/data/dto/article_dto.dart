@@ -12,6 +12,17 @@ String? _cleanup(String? raw) {
   return s.isEmpty ? null : s;
 }
 
+String? _normalizeUrl(String? raw) {
+  if (raw == null) return null;
+  final s = raw.trim();
+  return s.isEmpty ? null : s;
+}
+
+String _sourceNameOrUnknown(String? raw) {
+  final n = _cleanup(raw);
+  return (n == null || n.isEmpty) ? 'Unknown' : n;
+}
+
 @JsonSerializable()
 class ArticleDto {
   final String title;
@@ -41,17 +52,20 @@ class ArticleDto {
     final dt =
         DateTime.tryParse(publishedAt) ??
         DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+
     final t = _cleanup(title) ?? title;
     final d = _cleanup(description);
     final c = _cleanup(content);
+    final image = _normalizeUrl(urlToImage);
+
     return Article(
       title: t,
       description: d,
-      publishedAt: dt,
-      url: url,
-      urlToImage: urlToImage,
-      sourceName: source?.name ?? 'Unknown',
       content: c,
+      urlToImage: image,
+      url: url,
+      publishedAt: dt,
+      sourceName: _sourceNameOrUnknown(source?.name),
     );
   }
 }
