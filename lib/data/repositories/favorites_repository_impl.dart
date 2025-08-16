@@ -11,12 +11,13 @@ class FavoritesRepositoryImpl implements FavoritesRepository {
 
   Map<String, dynamic> _toJson(Article a) {
     return {
+      'source': {'name': a.sourceName},
+      'author': null,
       'title': a.title,
       'description': a.description,
-      'publishedAt': a.publishedAt.toIso8601String(),
       'url': a.url,
       'urlToImage': a.urlToImage,
-      'sourceName': a.sourceName,
+      'publishedAt': a.publishedAt.toIso8601String(),
       'content': a.content,
     };
   }
@@ -32,14 +33,15 @@ class FavoritesRepositoryImpl implements FavoritesRepository {
 
   @override
   Future<List<Article>> getAll() async {
-    final list = await local.allJson();
-    return list
-        .map(
-          (s) => ArticleDto.fromJson(
-            jsonDecode(s) as Map<String, dynamic>,
-          ).toDomain(),
-        )
-        .toList(growable: false);
+    final raw = await local.allJson();
+    final items = <Article>[];
+    for (final s in raw) {
+      final decoded = jsonDecode(s);
+      if (decoded is Map<String, dynamic>) {
+        items.add(ArticleDto.fromJson(decoded).toDomain());
+      }
+    }
+    return List.unmodifiable(items);
   }
 
   @override
