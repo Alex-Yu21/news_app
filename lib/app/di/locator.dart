@@ -17,32 +17,21 @@ Future<void> setupLocator() async {
   if (!getIt.isRegistered<Dio>()) {
     getIt.registerLazySingleton<Dio>(DioClient.create);
   }
-  if (!getIt.isRegistered<NewsApiRemote>()) {
-    getIt.registerLazySingleton<NewsApiRemote>(() => NewsApiRemote(getIt()));
-  }
-  if (!getIt.isRegistered<NewsRepository>()) {
-    getIt.registerLazySingleton<NewsRepository>(
-      () => NewsRepositoryImpl(getIt()),
-    );
-  }
 
-  if (!getIt.isRegistered<NewsListCubit>()) {
-    getIt.registerFactory<NewsListCubit>(() => NewsListCubit(getIt()));
-  }
+  getIt.registerLazySingleton<NewsApiRemote>(() => NewsApiRemote(getIt()));
+  getIt.registerLazySingleton<NewsRepository>(
+    () => NewsRepositoryImpl(getIt()),
+  );
+  getIt.registerFactory<NewsListCubit>(() => NewsListCubit(getIt()));
 
   if (!getIt.isRegistered<SharedPreferences>()) {
     final prefs = await SharedPreferences.getInstance();
     getIt.registerSingleton<SharedPreferences>(prefs);
   }
-  if (!getIt.isRegistered<FavoritesLocal>()) {
-    getIt.registerLazySingleton<FavoritesLocal>(() => FavoritesLocal(getIt()));
-  }
-  if (!getIt.isRegistered<FavoritesRepository>()) {
-    getIt.registerLazySingleton<FavoritesRepository>(
-      () => FavoritesRepositoryImpl(getIt()),
-    );
-  }
-  if (!getIt.isRegistered<FavoritesCubit>()) {
-    getIt.registerLazySingleton<FavoritesCubit>(() => FavoritesCubit(getIt()));
-  }
+
+  getIt.registerLazySingleton<FavoritesLocal>(() => FavoritesLocal(getIt()));
+  getIt.registerLazySingleton<FavoritesRepository>(
+    () => FavoritesRepositoryImpl(getIt()),
+  );
+  getIt.registerLazySingleton<FavoritesCubit>(() => FavoritesCubit(getIt()));
 }
