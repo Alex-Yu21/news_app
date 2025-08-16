@@ -23,6 +23,9 @@ class _FavoritesPageState extends State<FavoritesPage> {
   static const _favBtnW = 33.0;
   static const _favBtnH = 32.0;
 
+  static const _removeDuration = Duration(milliseconds: 220);
+  static const _insertDuration = Duration(milliseconds: 240);
+
   final _listKey = GlobalKey<AnimatedListState>();
   final List<Article> _renderItems = [];
 
@@ -30,40 +33,6 @@ class _FavoritesPageState extends State<FavoritesPage> {
   bool _reveal = false;
 
   String _id(Article a) => a.url;
-
-  Widget _builCard(Article a) {
-    return InkWell(
-      onTap: () => context.pushNamed('details', extra: a),
-      child: CardShadow(
-        child: ArticleCard(
-          article: a,
-          heroTag: articleHeroTag(a),
-          trailing: FavoriteButton(
-            article: a,
-            width: _favBtnW,
-            height: _favBtnH,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _tile(Animation<double> animation, Widget child) {
-    final curve = CurvedAnimation(
-      parent: animation,
-      curve: Curves.easeOutCubic,
-    );
-    return Padding(
-      padding: _cardsPadding,
-      child: SlideTransition(
-        position: Tween<Offset>(
-          begin: Offset(0, 0.05),
-          end: Offset.zero,
-        ).animate(curve),
-        child: FadeTransition(opacity: curve, child: child),
-      ),
-    );
-  }
 
   void _sync(List<Article> next) {
     final nextIds = next.map(_id).toSet();
@@ -74,8 +43,16 @@ class _FavoritesPageState extends State<FavoritesPage> {
         final removed = _renderItems.removeAt(i);
         _listKey.currentState?.removeItem(
           i,
-          (context, anim) => _tile(anim, _builCard(removed)),
-          duration: Duration(milliseconds: 220),
+          (context, anim) => _FadeSlideInItem(
+            animation: anim,
+            padding: _cardsPadding,
+            child: _FavoriteListItem(
+              article: removed,
+              favBtnW: _favBtnW,
+              favBtnH: _favBtnH,
+            ),
+          ),
+          duration: _removeDuration,
         );
       }
     }
@@ -85,10 +62,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
       final idx = _renderItems.indexWhere((x) => _id(x) == _id(a));
       if (idx == -1) {
         _renderItems.insert(i, a);
-        _listKey.currentState?.insertItem(
-          i,
-          duration: Duration(milliseconds: 240),
-        );
+        _listKey.currentState?.insertItem(i, duration: _insertDuration);
       } else if (idx != i) {
         final moved = _renderItems.removeAt(idx);
         _renderItems.insert(i, moved);
@@ -148,8 +122,15 @@ class _FavoritesPageState extends State<FavoritesPage> {
           key: _listKey,
           padding: padding,
           initialItemCount: _renderItems.length,
-          itemBuilder: (context, index, animation) =>
-              _tile(animation, _builCard(_renderItems[index])),
+          itemBuilder: (context, index, animation) => _FadeSlideInItem(
+            animation: animation,
+            padding: _cardsPadding,
+            child: _FavoriteListItem(
+              article: _renderItems[index],
+              favBtnW: _favBtnW,
+              favBtnH: _favBtnH,
+            ),
+          ),
         );
 
         return SlideUpReveal(
@@ -158,6 +139,66 @@ class _FavoritesPageState extends State<FavoritesPage> {
           child: list,
         );
       },
+    );
+  }
+}
+
+class _FadeSlideInItem extends StatelessWidget {
+  const _FadeSlideInItem({
+    required this.animation,
+    required this.child,
+    this.padding = EdgeInsets.zero,
+  });
+
+  final Animation<double> animation;
+  final Widget child;
+  final EdgeInsets padding;
+
+  @override
+  Widget build(BuildContext context) {
+    final curve = CurvedAnimation(
+      parent: animation,
+      curve: Curves.easeOutCubic,
+    );
+    return Padding(
+      padding: padding,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.05),
+          end: Offset.zero,
+        ).animate(curve),
+        child: FadeTransition(opacity: curve, child: child),
+      ),
+    );
+  }
+}
+
+class _FavoriteListItem extends StatelessWidget {
+  const _FavoriteListItem({
+    required this.article,
+    required this.favBtnW,
+    required this.favBtnH,
+  });
+
+  final Article article;
+  final double favBtnW;
+  final double favBtnH;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => context.pushNamed('details', extra: article),
+      child: CardShadow(
+        child: ArticleCard(
+          article: article,
+          heroTag: articleHeroTag(article),
+          trailing: FavoriteButton(
+            article: article,
+            width: favBtnW,
+            height: favBtnH,
+          ),
+        ),
+      ),
     );
   }
 }
