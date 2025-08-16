@@ -8,6 +8,7 @@ import 'package:news_app/presentation/cubit/news_list_cubit.dart';
 import 'package:news_app/presentation/widgets/article_card.dart';
 import 'package:news_app/presentation/widgets/category_chips.dart';
 import 'package:news_app/presentation/widgets/search_field.dart';
+import 'package:news_app/presentation/widgets/slide_up_reveal.dart';
 
 class NewsListPage extends StatelessWidget {
   const NewsListPage({super.key});
@@ -107,24 +108,12 @@ class _NewsListBodyState extends State<_NewsListBody> {
           onFetchMore: cubit.fetchMore,
           onRefresh: () => cubit.load(reset: true, page: 1),
         );
-
-        if (!shouldAnimate) return list;
-
-        final bottomInset = MediaQuery.of(context).padding.bottom;
-        const navBarHeight = 84.0;
-        const navBarOuterBottom = 12.0;
-        const extra = 12.0;
-        final fromPx = navBarHeight + navBarOuterBottom + bottomInset + extra;
-
-        return TweenAnimationBuilder<double>(
-          tween: Tween(begin: fromPx, end: 0),
-          duration: const Duration(milliseconds: 420),
-          curve: Curves.easeOutCubic,
+        return SlideUpReveal(
+          enabled: shouldAnimate,
+          from: AppSizes.bottomPadding(context),
           child: list,
-          builder: (context, dy, child) {
-            return Transform.translate(offset: Offset(0, dy), child: child);
-          },
         );
+
       case NewsListStatus.idle:
         return const SizedBox.shrink();
     }
