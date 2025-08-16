@@ -17,6 +17,7 @@ class NewsApiRemote {
   }) async {
     try {
       final res = await _dio.get<Map<String, dynamic>>(
+        // только топ новости из-за бесплатного плана API в 100
         '/top-headlines',
         queryParameters: {
           'country': country,
