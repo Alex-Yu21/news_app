@@ -11,78 +11,88 @@ class ArticleCard extends StatelessWidget {
     required this.article,
     this.onTap,
     this.heroTag,
+    this.trailing,
   });
 
   final Article article;
   final VoidCallback? onTap;
   final Object? heroTag;
+  final Widget? trailing;
+
+  static const _cardBorder = BorderSide(color: Color(0xFFCECECE), width: 0.5);
+  static const _cardRadius = BorderRadius.all(Radius.circular(AppSizes.radS));
+  static const _imageClipRadius = BorderRadius.only(
+    topLeft: Radius.circular(AppSizes.radS),
+    bottomLeft: Radius.circular(AppSizes.radS),
+  );
+
+  static const _gapX12 = SizedBox(width: 12);
+  static const _gapY4 = SizedBox(height: 4);
+
+  static const _titlePadding = EdgeInsets.only(top: 5, right: 11);
+  static const _datePadding = EdgeInsets.only(bottom: 6, right: 11);
 
   String _formatDate(DateTime? dt) =>
       dt == null ? '' : DateFormat('MM.dd.yyyy').format(dt);
 
+  String _subtitleOf(Article a) {
+    final desc = a.description?.trim() ?? '';
+    if (desc.isNotEmpty) return desc;
+    return a.sourceName.trim();
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).extension<AppText>() ?? AppText.satoshi();
-    final subtitle = (article.description?.trim().isNotEmpty ?? false)
-        ? article.description!.trim()
-        : (article.sourceName);
-
-    Widget image = SizedBox(
-      width: AppSizes.imageWidth,
-      height: AppSizes.imageHeigth,
-      child: _ArticleImage(
-        url: article.urlToImage,
-        sourceName: article.sourceName,
-      ),
-    );
-
-    image = ClipRRect(
-      borderRadius: const BorderRadius.only(
-        topLeft: Radius.circular(AppSizes.radS),
-        bottomLeft: Radius.circular(AppSizes.radS),
-      ),
-      child: image,
-    );
-
-    if (heroTag != null) {
-      image = Hero(tag: heroTag!, child: image);
-    }
+    final subtitle = _subtitleOf(article);
+    final dateText = _formatDate(article.publishedAt);
 
     return Material(
       type: MaterialType.transparency,
       child: Ink(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(AppSizes.radS),
-          border: Border.all(color: Color(0xFFCECECE), width: 0.5),
+          borderRadius: _cardRadius,
+          border: const Border.fromBorderSide(_cardBorder),
         ),
         child: InkWell(
-          borderRadius: BorderRadius.circular(AppSizes.radS),
           onTap: onTap,
+          borderRadius: _cardRadius,
           child: SizedBox(
             height: AppSizes.imageHeigth,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                image,
-                const SizedBox(width: 12),
+                _CardImage(
+                  url: article.urlToImage,
+                  sourceName: article.sourceName,
+                  heroTag: heroTag,
+                ),
+                _gapX12,
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(top: 5),
-                        child: Text(
-                          article.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: text.title,
+                        padding: _titlePadding,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                article.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: text.title,
+                              ),
+                            ),
+                            if (trailing != null) trailing!,
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      if (subtitle.trim().isNotEmpty)
+                      _gapY4,
+                      if (subtitle.isNotEmpty)
                         Text(
-                          subtitle.trim(),
+                          subtitle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: text.body,
@@ -95,11 +105,8 @@ class ArticleCard extends StatelessWidget {
                       Align(
                         alignment: Alignment.bottomRight,
                         child: Padding(
-                          padding: const EdgeInsets.only(bottom: 6, right: 11),
-                          child: Text(
-                            _formatDate(article.publishedAt),
-                            style: text.caption,
-                          ),
+                          padding: _datePadding,
+                          child: Text(dateText, style: text.caption),
                         ),
                       ),
                     ],
@@ -111,6 +118,28 @@ class ArticleCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _CardImage extends StatelessWidget {
+  const _CardImage({required this.url, required this.sourceName, this.heroTag});
+
+  final String? url;
+  final String sourceName;
+  final Object? heroTag;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget child = SizedBox(
+      width: AppSizes.imageWidth,
+      height: AppSizes.imageHeigth,
+      child: _ArticleImage(url: url, sourceName: sourceName),
+    );
+
+    child = ClipRRect(borderRadius: ArticleCard._imageClipRadius, child: child);
+    if (heroTag != null) child = Hero(tag: heroTag!, child: child);
+
+    return child;
   }
 }
 
@@ -142,17 +171,15 @@ class _SourceLabelPlaceholder extends StatelessWidget {
 
   final String sourceName;
 
-  String _label(String s) {
-    final name = s.trim();
-    if (name.isEmpty) return '•';
-    if (name.length <= 3) return '•';
+  String _label(String raw) {
+    final name = raw.trim();
+    if (name.isEmpty || name.length <= 3) return '•';
     final words = name
         .split(RegExp(r'\s+'))
         .where((e) => e.isNotEmpty)
         .toList();
     if (words.length >= 3) {
-      final acronym = words.map((w) => w[0]).join().toUpperCase();
-      return acronym;
+      return words.map((w) => w[0]).join().toUpperCase();
     }
     return name;
   }
@@ -160,8 +187,8 @@ class _SourceLabelPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).extension<AppText>() ?? AppText.satoshi();
-    final bg = const Color(0xFFC1C1C1);
-    final fg = Colors.white70;
+    const bg = Color(0xFFC1C1C1);
+    const fg = Colors.white70;
 
     return Container(
       alignment: Alignment.center,
