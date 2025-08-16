@@ -18,18 +18,22 @@ class FavoriteButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<FavoritesCubit, FavoritesState>(
-      buildWhen: (p, n) => p.ids != n.ids,
-      builder: (context, state) {
-        final isFav = state.ids.contains(article.url);
-        return IconButton(
-          onPressed: () => context.read<FavoritesCubit>().toggle(article),
-          icon: SvgPicture.asset(
-            isFav ? 'assets/icons/star_pressed.svg' : 'assets/icons/star.svg',
-            width: width,
-            height: height,
+    return BlocSelector<FavoritesCubit, FavoritesState, bool>(
+      selector: (s) => s.ids.contains(article.url),
+      builder: (context, isFav) {
+        return SizedBox(
+          width: width,
+          height: height,
+          child: IconButton(
+            onPressed: () => context.read<FavoritesCubit>().toggle(article),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            splashRadius: (width > height ? width : height) / 2,
+            icon: SvgPicture.asset(
+              isFav ? 'assets/icons/star_pressed.svg' : 'assets/icons/star.svg',
+              fit: BoxFit.contain,
+            ),
           ),
-          splashRadius: (width > height ? width : height) / 2,
         );
       },
     );

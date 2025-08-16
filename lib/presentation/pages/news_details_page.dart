@@ -16,73 +16,79 @@ class NewsDetailsPage extends StatelessWidget {
 
   final Article article;
 
+  static const _appBarHeight = 61.0;
+  static const _screenPadding = EdgeInsets.symmetric(horizontal: 16);
+  static const _gapAfterSubtitle = 24.0;
+  static const _imageTopGap = 10.0;
+  static const _imageBottomGap = 18.0;
+
+  static const _favBtnW = 43.0;
+  static const _favBtnH = 41.0;
+
+  static const _arrowW = 28.0;
+  static const _arrowH = 24.35;
+
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).extension<AppText>();
+    final t = Theme.of(context).extension<AppText>()!;
     final date = DateFormat('MM.dd.yyyy').format(article.publishedAt);
-    final subtitle = (article.description ?? '').trim();
-    final body = (article.content ?? '').trim();
+    final hasSubtitle = (article.description ?? '').trim().isNotEmpty;
+    final hasBody = (article.content ?? '').trim().isNotEmpty;
+    final hasImage = (article.urlToImage ?? '').isNotEmpty;
+    final br = const BorderRadius.all(Radius.circular(AppSizes.radImage));
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        toolbarHeight: 72,
-        leadingWidth: 60,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16, top: 28),
-          child: IconButton(
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            onPressed: () => context.pop(),
-            icon: SvgPicture.asset(
-              'assets/icons/back_arrow.svg',
-              width: 28,
-              height: 24.35,
-              fit: BoxFit.contain,
-            ),
-          ),
-        ),
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
         elevation: 0,
+        toolbarHeight: _appBarHeight,
+        leading: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              onPressed: () => context.pop(),
+              padding: EdgeInsets.only(left: _screenPadding.left),
+              icon: SvgPicture.asset(
+                'assets/icons/back_arrow.svg',
+                width: _arrowW,
+                height: _arrowH,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ],
+        ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(top: 20, right: 16),
-            child: FavoriteButton(article: article, height: 41, width: 43),
-          ),
+          FavoriteButton(article: article, width: _favBtnW, height: _favBtnH),
+          SizedBox(width: _screenPadding.right),
         ],
       ),
-      backgroundColor: Colors.white,
       body: ListView(
         clipBehavior: Clip.none,
-        padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
+        padding: _screenPadding.copyWith(
           bottom: AppSizes.bottomPadding(context),
         ),
         children: [
-          const SizedBox(height: 8.38),
-          Text(article.title, style: text?.titleLg),
-          const SizedBox(height: 8),
-          if (subtitle.isNotEmpty) Text(subtitle, style: text?.subtitleLg),
-          const SizedBox(height: 24),
+          Text(article.title, style: t.titleLg),
+          if (hasSubtitle)
+            Text(article.description!.trim(), style: t.subtitleLg),
+          const SizedBox(height: _gapAfterSubtitle),
           Row(
             children: [
-              Expanded(child: Text(article.sourceName, style: text?.body)),
-              Text(date, style: text?.body),
+              Expanded(child: Text(article.sourceName, style: t.body)),
+              Text(date, style: t.body),
             ],
           ),
-          const SizedBox(height: 10),
-          if ((article.urlToImage ?? '').isNotEmpty)
+          const SizedBox(height: _imageTopGap),
+          if (hasImage)
             CardShadow(
-              radius: const BorderRadius.all(
-                Radius.circular(AppSizes.radImage),
-              ),
+              radius: br,
               child: Hero(
                 tag: articleHeroTag(article),
                 child: ClipRRect(
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(AppSizes.radImage),
-                  ),
+                  borderRadius: br,
                   child: AspectRatio(
                     aspectRatio: 16 / 9,
                     child: CachedNetworkImage(
@@ -93,28 +99,27 @@ class NewsDetailsPage extends StatelessWidget {
                 ),
               ),
             ),
-          const SizedBox(height: 18),
-          if (body.isNotEmpty) Text(body, style: text?.bodyLg),
+          const SizedBox(height: _imageBottomGap),
+          if (hasBody) Text(article.content!.trim(), style: t.bodyLg),
           Align(
             alignment: Alignment.bottomRight,
             child: TextButton(
-              onPressed: () {
-                final uri = Uri.tryParse(article.url);
-                if (uri != null) {
-                  launchUrl(
-                    uri,
-                    mode: LaunchMode.inAppBrowserView,
-                    webViewConfiguration: const WebViewConfiguration(
-                      enableJavaScript: true,
-                    ),
-                  );
-                }
-              },
-              child: Text('read more', style: text?.bodyLg),
+              onPressed: () => _openArticle(article.url),
+              child: Text('read more', style: t.bodyLg),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _openArticle(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return;
+    await launchUrl(
+      uri,
+      mode: LaunchMode.inAppBrowserView,
+      webViewConfiguration: const WebViewConfiguration(enableJavaScript: true),
     );
   }
 }
