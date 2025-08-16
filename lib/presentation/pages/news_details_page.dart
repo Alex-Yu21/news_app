@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:news_app/app/router.dart';
 import 'package:news_app/app/theme/app_text.dart';
 import 'package:news_app/domain/entities/article.dart';
+import 'package:news_app/presentation/widgets/favorite_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class NewsDetailsPage extends StatelessWidget {
@@ -48,7 +49,12 @@ class NewsDetailsPage extends StatelessWidget {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
         elevation: 0,
-        actions: const [SizedBox(width: 8)],
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(top: 20, right: 16),
+            child: FavoriteButton(article: article, height: 41, width: 43),
+          ),
+        ],
       ),
       backgroundColor: Colors.white,
       body: ListView(

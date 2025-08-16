@@ -52,3 +52,5 @@ flutter:
     - assets/icons/news_list.svg
     - assets/icons/news_list_pressed.svg
     - assets/icons/back_arrow.svg
+    - assets/icons/star.svg
+    - assets/icons/star_pressed.svg
