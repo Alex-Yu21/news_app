@@ -15,18 +15,26 @@ const _kBarHeight = 84.0;
 const _kNewsIconSize = Size(36, 27);
 const _kFavIconSize = Size(41, 33);
 
+@immutable
+enum AppRoute {
+  list('/', 'list'),
+  details('details', 'details'),
+  favorites('/favorites', 'favorites');
+
+  final String path;
+  final String routeName;
+  const AppRoute(this.path, this.routeName);
+}
+
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.child});
   final Widget child;
 
-  int _indexOf(String path) => path.startsWith('/favorites') ? 1 : 0;
+  int _indexOf(String path) => path.startsWith(AppRoute.favorites.path) ? 1 : 0;
 
   void _onTap(BuildContext context, int index) {
-    if (index == 0) {
-      context.go('/');
-    } else {
-      context.go('/favorites');
-    }
+    final target = index == 0 ? AppRoute.list : AppRoute.favorites;
+    context.goNamed(target.routeName);
   }
 
   @override
@@ -39,12 +47,14 @@ class AppShell extends StatelessWidget {
       body: Stack(
         children: [
           SafeArea(top: true, bottom: false, child: child),
+          /* Подложка под AppBar. Добавила чтобы при скролле контент не «просвечивал» под навбаром - 
+ на экране деталей паддинг по краям страници меньше и без обложки обрезается текст.*/
           Positioned(
             left: 0,
             right: 0,
             bottom: 0,
             height: bottomInset + _kBarBottomGap + _kBarHeight,
-            child: DecoratedBox(
+            child: const DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
@@ -122,7 +132,6 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final a = isActive ? activeAsset : asset;
     return InkWell(
       onTap: onTap,
       splashFactory: InkRipple.splashFactory,
@@ -130,7 +139,10 @@ class _NavItem extends StatelessWidget {
         child: SizedBox(
           width: size.width,
           height: size.height,
-          child: SvgPicture.asset(a, fit: BoxFit.contain),
+          child: SvgPicture.asset(
+            isActive ? activeAsset : asset,
+            fit: BoxFit.contain,
+          ),
         ),
       ),
     );
@@ -145,14 +157,15 @@ final GoRouter appRouter = GoRouter(
       builder: (_, __, child) => AppShell(child: child),
       routes: [
         GoRoute(
-          path: '/',
-          name: 'list',
+          path: AppRoute.list.path,
+          name: AppRoute.list.routeName,
           pageBuilder: (_, __) => const NoTransitionPage(child: NewsListPage()),
           routes: [
             GoRoute(
-              path: 'details',
-              name: 'details',
-              redirect: (context, state) => state.extra is Article ? null : '/',
+              path: AppRoute.details.path,
+              name: AppRoute.details.routeName,
+              redirect: (context, state) =>
+                  state.extra is Article ? null : AppRoute.list.path,
               builder: (context, state) {
                 final article = state.extra! as Article;
                 return NewsDetailsPage(article: article);
@@ -161,8 +174,8 @@ final GoRouter appRouter = GoRouter(
           ],
         ),
         GoRoute(
-          path: '/favorites',
-          name: 'favorites',
+          path: AppRoute.favorites.path,
+          name: AppRoute.favorites.routeName,
           builder: (_, __) => const FavoritesPage(),
         ),
       ],
