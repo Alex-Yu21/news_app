@@ -65,3 +65,6 @@ coverage/**
 # Secrets 
 .env
 *.env
+
+# VS Code workspace
+.vscode/launch.json
