@@ -45,7 +45,7 @@ class ArticleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).extension<AppText>() ?? AppText.satoshi();
+    final t = context.appText;
     final subtitle = _subtitleOf(article);
     final dateText = _formatDate(article.publishedAt);
 
@@ -86,7 +86,7 @@ class ArticleCard extends StatelessWidget {
                                 article.title,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: text.title,
+                                style: t.title,
                               ),
                             ),
                             if (trailing != null) trailing!,
@@ -98,14 +98,14 @@ class ArticleCard extends StatelessWidget {
                           subtitle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: text.body,
+                          style: t.body,
                         ),
                       const Spacer(),
                       Align(
                         alignment: Alignment.bottomRight,
                         child: Padding(
                           padding: _datePadding,
-                          child: Text(dateText, style: text.caption),
+                          child: Text(dateText, style: t.caption),
                         ),
                       ),
                     ],
@@ -194,7 +194,7 @@ class _SourceLabelPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context).extension<AppText>() ?? AppText.satoshi();
+    final t = context.appText;
     const bg = Color(0xFFC1C1C1);
     const fg = Colors.white70;
 

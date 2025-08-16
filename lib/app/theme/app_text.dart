@@ -81,3 +81,10 @@ class AppText extends ThemeExtension<AppText> {
     );
   }
 }
+
+extension BuildContextAppText on BuildContext {
+  AppText get appText {
+    final ext = Theme.of(this).extension<AppText>();
+    return ext ?? AppText.satoshi();
+  }
+}

@@ -15,7 +15,7 @@ class CategoryChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = Theme.of(context).extension<AppText>()!;
+    final t = context.appText;
     final cats = NewsCategory.values;
 
     return SizedBox(
@@ -53,10 +53,7 @@ class CategoryChips extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
-                  style: style.caption.copyWith(
-                    color: Colors.white,
-                    height: 1.0,
-                  ),
+                  style: t.caption.copyWith(color: Colors.white, height: 1.0),
                 ),
               ),
             ),

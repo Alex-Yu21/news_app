@@ -30,7 +30,7 @@ class NewsDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context).extension<AppText>()!;
+    final t = context.appText;
     final date = DateFormat('MM.dd.yyyy').format(article.publishedAt);
     final hasSubtitle = (article.description ?? '').trim().isNotEmpty;
     final hasBody = (article.content ?? '').trim().isNotEmpty;

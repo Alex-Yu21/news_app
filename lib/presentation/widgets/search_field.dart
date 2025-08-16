@@ -13,7 +13,7 @@ class SearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).extension<AppText>()!;
+    final t = context.appText;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -35,7 +35,7 @@ class SearchField extends StatelessWidget {
             textAlignVertical: TextAlignVertical.center,
             cursorHeight: AppSizes.iconM,
             textInputAction: TextInputAction.search,
-            style: text.body,
+            style: t.body,
             decoration: const InputDecoration(
               isDense: true,
               contentPadding: EdgeInsets.zero,
