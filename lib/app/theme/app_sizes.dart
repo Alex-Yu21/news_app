@@ -10,7 +10,7 @@ class AppSizes {
   static const double imageWidth = 123.0;
   static const double iconM = 32.0;
 
-  static const double radS = 16.0;
+  static const Radius radS = Radius.circular(16.0);
   static const double radImage = 27.0;
 
   static const double navBarHeight = 84.0;

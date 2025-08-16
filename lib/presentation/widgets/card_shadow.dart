@@ -3,7 +3,7 @@ import 'package:news_app/app/theme/app_sizes.dart';
 
 class CardShadow extends StatelessWidget {
   const CardShadow({super.key, required this.child, BorderRadius? radius})
-    : radius = radius ?? const BorderRadius.all(Radius.circular(AppSizes.radS));
+    : radius = radius ?? const BorderRadius.all(AppSizes.radS);
 
   final Widget child;
   final BorderRadius radius;

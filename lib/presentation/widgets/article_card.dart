@@ -20,10 +20,10 @@ class ArticleCard extends StatelessWidget {
   final Widget? trailing;
 
   static const _cardBorder = BorderSide(color: Color(0xFFCECECE), width: 0.5);
-  static const _cardRadius = BorderRadius.all(Radius.circular(AppSizes.radS));
+  static const _cardRadius = BorderRadius.all(AppSizes.radS);
   static const _imageClipRadius = BorderRadius.only(
-    topLeft: Radius.circular(AppSizes.radS),
-    bottomLeft: Radius.circular(AppSizes.radS),
+    topLeft: AppSizes.radS,
+    bottomLeft: AppSizes.radS,
   );
 
   static const _gapBwImageAndTitle = SizedBox(width: 12);
