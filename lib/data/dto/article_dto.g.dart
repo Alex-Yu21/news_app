@@ -12,7 +12,9 @@ ArticleDto _$ArticleDtoFromJson(Map<String, dynamic> json) => ArticleDto(
   urlToImage: json['urlToImage'] as String?,
   url: json['url'] as String,
   publishedAt: json['publishedAt'] as String,
-  source: SourceDto.fromJson(json['source'] as Map<String, dynamic>),
+  source: json['source'] == null
+      ? null
+      : SourceDto.fromJson(json['source'] as Map<String, dynamic>),
   content: json['content'] as String?,
 );
 
