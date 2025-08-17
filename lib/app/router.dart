@@ -177,7 +177,8 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: AppRoute.favorites.path,
           name: AppRoute.favorites.routeName,
-          builder: (_, __) => const FavoritesPage(),
+          pageBuilder: (_, __) =>
+              const NoTransitionPage(child: FavoritesPage()),
         ),
       ],
     ),
